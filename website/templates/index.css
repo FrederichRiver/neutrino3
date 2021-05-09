@@ -1,0 +1,72 @@
+a:link {color:#000000;}      /* 未访问链接*/
+a:visited {color:#000000;}  /* 已访问链接 */
+a:hover {color:blue;}  /* 鼠标移动到链接上 */
+a:active {color:#000000;}  /* 鼠标点击时 */
+
+body,div,table,a,input,ul,li {
+    font-size: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+a {
+    text-decoration: none;
+}
+
+.price_style{
+    color: green;
+    text-align: left;
+    font-size: 26px;
+    display: inline-block;
+}
+
+.main_frame {
+    width: 800px;
+    margin: auto;
+    color: grey;
+}
+
+.reverse_frame {
+    width: 800px;
+    margin: auto;
+}
+
+.d1 {
+    display: inline-block;
+}
+
+.search-style[type="search"] {
+    border-radius: 5px;
+}
+
+.search-style[type="submit"] {
+    color:black
+}
+
+ul {
+    list-style-type: none;
+    display: inline;
+    background-color:#333;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+
+}
+
+li {
+    width: 80px;
+    text-align: center;
+    float:left;
+}
+
+li a {
+    display: block;
+    color: white;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a:hover {
+    background-color: black;
+}
+li a:hover {color:white}  /* 鼠标移动到链接上 */
+a:active {color:#000000;}  /* 鼠标点击时 */

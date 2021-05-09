@@ -1,0 +1,14 @@
+[
+	{
+		"task":"service_download_stock_data",
+		"work day":"18:00"
+	},
+	{
+		"task":"event_download_index_data",
+		"time":"22:00"
+	},
+	{
+		"task":"event_record_company_stock_structure",
+		"time":"00:05"
+	}
+]

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="mystyle.css">
+    <script>document.write()</script>
+    <title>Petro</title>
+</head>
+<body>
+    <div class="main_frame">
+        <span id="NYMEXOIL">NYMEX原油</span>
+        <span id="wti-price" class="price_style">67</span>
+        <span id="wti-amp" style="color:red">+2.13%</span>
+    </div>
+    <div class="main_frame">
+        <span>布伦特原油</span>
+        <span id="brent-price" class="price_style"> $69.21</span>
+        <span id="brent-amp" style="color:red">+1.174</span>
+    </div>
+    <div class="main_frame">
+        <span>上海原油</span>
+        <span id="sc-price" class="price_style"> ￥442.05</span>
+        <span id="sc-amp" style="color:red">+2.97%</span>
+    </div>
+    <script type="text/javascript">
+        Number.prototype.toPercent = function(){
+            return (Math.round(this * 10000)/100).toFixed(2) + '%';
+        }
+        function inter_update(){
+            xmlhttp=new XMLHttpRequest();
+            xmlhttp.open("GET", "http://115.159.1.221/dev/", false);
+            xmlhttp.send();
+            result = xmlhttp.responseText;
+            var obj = JSON.parse(result);
+            var prefix = ["wti","brent","sc"];
+            var cu = ["$", "$", "&yen"]
+            for (i=0;i<3;i++) {
+                p1=Number(obj[i].price);
+                p2=Number(obj[i].prev_price);
+                amp=p1/p2-1;
+                document.getElementById(prefix[i] + "-price").innerHTML=(cu[i] + obj[i].price);
+                if (amp>0) {
+                    document.getElementById(prefix[i] + "-price").style.color="red";
+                    document.getElementById(prefix[i] + "-amp").style.color="red";
+                } else if (amp<0){
+                    document.getElementById(prefix[i] + "-price").style.color="green";
+                    document.getElementById(prefix[i] + "-amp").style.color="green";
+                } else {
+                    document.getElementById(prefix[i] + "-price").style.color="gray";
+                    document.getElementById(prefix[i] + "-amp").style.color="gray";
+                }
+                document.getElementById(prefix[i] + "-amp").innerHTML=amp.toPercent();
+            }
+            
+		}
+		var interval=setInterval(inter_update,3000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+	"IP":"172.17.0.2",
+	"image_path":"/var/exchange/image/k_plot",
+	"URL":"https://163.com",
+	"Sina":"https://sina.com.cn",
+    "URL_163_MONEY":"http://quotes.money.163.com/service/chddata.html?code={0}&start={1}&end={2}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER",
+	"URL_fh_163":"http://quotes.money.163.com/f10/fhpg_{}.html#01d05",
+	"URL_FINANCE_SUMMARY":"http://quotes.money.163.com/service/zycwzb_{0}.html?type=report",
+	"URL_hexun_stockstructure": "http://stockdata.stock.hexun.com/2009_gbjg_{}.shtml",
+	"URL_tick_data": "http://quotes.money.163.com/cjmx/{0}/{1}/{2}.xls",
+	"URL_balance":"http://quotes.money.163.com/service/zcfzb_{}.html",
+	"URL_cashflow":"http://quotes.money.163.com/service/xjllb_{}.html",
+	"URL_income":"http://quotes.money.163.com/service/lrb_{}.html",
+	"url_szse_stock_list":"http://www.cninfo.com.cn/new/data/szse_stock.json",
+	"url_hk_stock_list":"http://www.cninfo.com.cn/new/data/hke_stock.json",
+	"url_fund_list":"http://www.cninfo.com.cn/new/data/fund_stock.json",
+	"url_bond_list":"http://www.cninfo.com.cn/new/data/bond_stock.json",
+	"path_template":"/opt/neutrino/template/",
+	"fred_path":"/home/friederich/Downloads",
+	"update_interval":"3600"
+}

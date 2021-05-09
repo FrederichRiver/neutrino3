@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Geek Fred</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/index.css'%}" />
+    {% if device_type == 'mobile' %}
+        <meta name="viewport" content="width=device-width, initial-scale=0.65, user-scalable=yes, minimum-scale=0.5, maximum-scale=1.0"/>
+    {% else %}
+        <meta name="viewport" content="width=device-width, initial-scale=0.65, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+    {% endif %}
+    
+</head>
+<body>
+    <div class="main_frame">
+        <dl>
+            <dt>
+                <div class="d1">
+                    <img src="{% static 'images/SH000300.png'%}" width="100%">
+                </div>
+            </dt>
+        </dl>
+    </div>
+    <div class="main_frame">
+        <table align="center">
+            <tr>
+                <th>date</th>
+                <th>close price</th>
+            </tr>
+            {% for row in stock_data %}
+                <tr>
+                    <td>{{ row.trade_date }}</td>
+                    <td>{{ row.close_price }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        
+    </div>   
+</body>
+</html>

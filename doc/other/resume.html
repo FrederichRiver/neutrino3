@@ -1,0 +1,297 @@
+<html>
+
+<head>
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        img {
+            margin: auto;
+        }
+
+        .t1 {
+            width: 90px;
+            font-weight: bold;
+        }
+
+        .t2 {
+            width: 60px;
+            font-weight: bold;
+        }
+
+        .t4 {
+            width: 220px;
+        }
+
+        .t5 {
+            width: 100px;
+        }
+
+        .box {
+            margin: auto;
+            width: 800px;
+            height: 1200px;
+            display: grid;
+            background-color: white;
+            grid-template-columns: 0.6fr 1fr 1fr;
+            grid-template-rows: 180px 740px 200px;
+            grid-template-areas: 'a b b'
+                'c c c'
+                'd d d';
+        }
+
+        .box div:nth-child(1) {
+            grid-area: a;
+            margin-left: 0px;
+        }
+
+        .box div:nth-child(2) {
+            grid-area: b;
+            margin-left: 0px;
+        }
+
+        .box div:nth-child(3) {
+            grid-area: c;
+        }
+
+        .box div:nth-child(4) {
+            grid-area: d;
+        }
+
+        div.subtitle {
+            width: 150px;
+            height: 30px;
+             /* background-color: teal;*/
+            border-radius: 5px;
+        }
+
+        div.subtitle2 {
+            width: 120px;
+            height: 30px;
+            /* background-color: teal;*/
+            border-radius: 5px;
+        }
+
+        span.subtitle {
+            color:black;
+            font-weight: bold;
+            /* margin-left: 15px; */
+        }
+
+        .business {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <div class="img">
+            <img src="./hzy.jpg" alt="" height="80%">
+        </div>
+        <div class="info">
+            <table>
+                <tr>
+                    <td>
+                        <h3>个人简历</h3>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="t1">姓名：</td>
+                    <td style="width: 150px;">何智远</td>
+                    <td class="t1">年龄：</td>
+                    <td>38</td>
+                </tr>
+                <tr>
+                    <td class="t1">电话：</td>
+                    <td>185&nbsp;2301&nbsp;9910</td>
+                    <td class="t1">邮箱：</td>
+                    <td>hezhiyuan_tju@163.com</td>
+                </tr>
+                <tr>
+                    <td class="t1">工作经验：</td>
+                    <td>14年</td>
+                    <td class="t1">居住城市：</td>
+                    <td>重庆市渝北区</td>
+                </tr>
+                <tr>
+                    <td class="t1">籍贯：</td>
+                    <td>辽宁省抚顺市</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+        <div class="exp">
+            <div>
+                <hr>
+            </div>
+            <div class="subtitle">
+                <span class="subtitle">一、教育经历：</span>
+            </div>
+            <div>
+                <hr>
+            </div>
+            <div>
+                <table style="height: 35px;">
+                    <tr>
+                        <td class="t2">学校：</td>
+                        <td style="width: 85px;">天津大学</td>
+                        <td class="t2">时间：</td>
+                        <td style="width: 110px;">2002.09~2006.07&nbsp;</td>
+                        <td class="t2">专业：</td>
+                        <td style="width: 120px;">材料科学与工程</td>
+                        <td class="t2">学历：</td>
+                        <td>本科</td>
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <hr>
+            </div>
+            <div class="subtitle">
+                <span class="subtitle">二、工作经历：</span>
+            </div>
+            <div>
+                <hr>
+            </div>
+            <div>
+                <table>
+                    <tr>
+                        <td class="t2">公司：</td>
+                        <td class="t4">重庆长安新能源科技有限公司</td>
+                        <td class="t2">时间：</td>
+                        <td class="t5">2017.08至今&nbsp;</td>
+                        <td class="t2">职务：</td>
+                        <td style="font-size: 14px;">非金属材料业务主管<br> & 车灯业务主管</td>
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <hr>
+            </div>
+            <div>
+                <span class="business">职责：</span>
+                <span>负责内外饰模具、非金属材料、CAE业务；负责车灯产品开发、光学、热等仿真业务。</span><br>
+                <span class="business">业绩：</span>
+                <ol>
+                    <li>
+                        <span>带领团队掌握车灯的模具、光学、热仿真等正向开发能力，掌握电子开发能力。</span>
+                    </li>
+                    <li>
+                        <span>参与了国家十二五项目“纯电动轻量化”，在其中承担了碳纤维车身的早期方案制定。</span>
+                    </li>
+                    <li>
+                        <span>牵头新能源公司轻量化业务。</span>
+                    </li>
+                    <li>
+                        <span>牵头推进模具降本工作，三年累积降本约800余万。</span>
+                    </li>
+                </ol>
+            </div>
+            <div>
+                <hr>
+            </div>
+            <div>
+                <table>
+                    <tr>
+                        <td class="t2">公司：</td>
+                        <td class="t4">重庆长安汽车有限公司</td>
+                        <td class="t2">时间：</td>
+                        <td class="t5">2016.09~2017.08&nbsp;</td>
+                        <td class="t2">职务：</td>
+                        <td>智能泊车工程师</td>
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <hr>
+            </div>
+            <div>
+                <span class="business">职责：</span>
+                <span>负责影像和泊车产品开发</span><br>
+                <span class="business">业绩：</span>
+                <span>开发了长安首个高清全景和半自动泊车产品，在CS75上投产应用。</span>
+            </div>
+            <div>
+                <hr>
+            </div>
+            <div>
+                <table>
+                    <tr>
+                        <td class="t2">公司：</td>
+                        <td class="t4">重庆长安汽车有限公司</td>
+                        <td class="t2">时间：</td>
+                        <td class="t5">2007.08~2016.09&nbsp;</td>
+                        <td class="t2">职务：</td>
+                        <td>CAE工程师</td>
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <hr>
+            </div>
+            <div>
+                <span class="business">职责：</span>
+                <span>负责内外饰相关的CAE工作及复合材料轻量化工作</span><br>
+                <span class="business">业绩：</span>
+                <ol>
+                    <li>
+                        <span>2007~2009年作为骨干建立了模流分析的应用能力。</span>
+                    </li>
+                    <li>
+                        <span>2009~2010年建立起结构仿真能力,2010年之后以结构仿真工作为主。</span>
+                    </li>
+                    <li>
+                        <span>2013~2016年参与了碳纤维顶盖、传动轴、转向支撑，塑料背门等多项复合材料应用项目，负责CAE仿真，解决生产工艺问题等。</span>
+
+                    </li>
+                    <li>
+                        <span>开发了二次开发工具，将复合材料工艺仿真结果映射到结构仿真上实现各向异性模型。</span>
+                    </li>
+                </ol>
+            </div>
+            <div>
+                <hr>
+            </div>
+        </div>
+        <div class="skill">
+            <div class="subtitle2">
+                <span class="subtitle">三、技能：</span>
+            </div>
+            <div>
+                <hr>
+            </div>
+            <div>
+                <ol>
+                    <li>
+                        <span>熟悉结构仿真业务及技能，包括静刚度和强度、模态及NVH、碰撞等类型分析，熟练使用Abaqus、Nastran、LS-Dyna等软件。</span>
+
+                    </li>
+                    <li>
+                        <span>熟悉复合材料结构仿真，熟悉Abaqus下的复合材料二次开发。</span>
+
+                    </li>
+                    <li>
+                        <span>熟悉复合材料的注塑，SMC等工艺，了解RTM等热固性工艺。</span>
+
+                    </li>
+                    <li>
+                        <span>熟悉CFD（热流）、模流分析等仿真业务和技能，熟练使用Moldflow、StarCCM+软件。</span>
+
+                    </li>
+                    <li>
+                        <span>熟悉车灯相关的设计、光学、电子相关业务及技能，掌握Lucidshape光学仿真、Altium Design电子设计等技能。</span>
+                    </li>
+                    <li>
+                        <span>熟悉Ubuntu下的Python/MySQL开发。</span>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

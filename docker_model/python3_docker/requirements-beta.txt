@@ -1,0 +1,16 @@
+pandas>=1.0.5
+chardet
+Flask
+lxml
+matplotlib
+neobolt
+neotime
+numpy
+requests
+setuptools
+torch==1.6.0+cpu
+torchvision==0.7.0+cpu
+transformers==3.0.2
+urllib3
+wheel
+xlrd
