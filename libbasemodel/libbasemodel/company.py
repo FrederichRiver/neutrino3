@@ -4,7 +4,7 @@ import re
 import lxml
 import pandas
 from libbasemodel.stock_model import StockBase
-from mars.log_manager import log_wo_return
+from libutils.log import Log
 # from venus.stock_base import StockEventBase
 
 
@@ -23,7 +23,7 @@ class EventCompany(StockBase):
                 result.append(df)
         return result
 
-    @log_wo_return
+    @Log
     def record_company_infomation(self, stock_code):
         url = f"http://quotes.money.163.com/f10/gszl_{stock_code[2:]}.html#01f02"
         table_list = self.get_html_table(url, attr="[@class='table_bg001 border_box limit_sale table_details']")
@@ -38,8 +38,9 @@ class EventCompany(StockBase):
             f"'{t.iloc[9, 1]}','{t.iloc[10, 1]}','{t.iloc[11, 1]}')"
         )
         self.engine.execute(insert_sql)
+        return 1
 
-    @log_wo_return
+    @Log
     def record_stock_structure(self, stock_code):
         url = f"https://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructureHistory/stockid/{stock_code[2:]}/stocktype/TotalStock.phtml"
         table_list = self.get_html_table(url, attr="[contains(@id,'historyTable')]")
@@ -47,6 +48,7 @@ class EventCompany(StockBase):
             for table in table_list:
                 df = self._resolve_stock_structure_table(table)
                 self._update_stock_structure(stock_code, df)
+        return 1
 
     def _resolve_stock_structure_table(self, table) -> pandas.DataFrame:
         df = pd.read_html(table)

@@ -1,14 +1,14 @@
 #!/usr/bin/python3
 from setuptools import setup, find_packages
-from mars import __version__ as v
+# from libutils import __version__ as v
+v = '1.12.44'
 setup(
-        name='mars',
+        name='libutils',
         version=v,
         packages=find_packages(),
-        # install_requires=['psutil>=5.7.0',],
         author='Fred Monster',
         author_email='hezhiyuan_tju@163.com',
-        url='https://github.com/FrederichRiver/neutrino',
+        url='https://github.com/FrederichRiver/neutrino2',
         license='LICENSE',
         description='None'
         )

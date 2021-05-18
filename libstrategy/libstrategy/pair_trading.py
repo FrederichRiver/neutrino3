@@ -3,17 +3,17 @@
 Pair Trading Method
 """
 from datetime import datetime, timedelta, date
-from libmysql_utils.mysql8 import LOCAL_HEADER, mysqlHeader
+from libmysql_utils.header import LOCAL_HEADER
+from libmysql_utils.mysql8 import mysqlBase, mysqlHeader
 import pandas
 from pandas import DataFrame
 from pandas import isnull
-from libmysql_utils.mysql8 import mysqlBase
 from libbasemodel.form import formStockManager
 import numpy as np
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
 from pandas.core.series import Series
-from libstrategy.signal import SignalBase, SignalPairTrade
+from libstrategy.utils.anzeichen import SignalBase, SignalPairTrade
 
 # from libstrategy.strategy_utils import StockPrice
 
@@ -194,72 +194,6 @@ def param_adjust():
     print(param[:3])
 
 # 4. 创建标的库
-
-
-class Calendar(object):
-    """
-    一个迭代器，可以返回交易日的日期
-    """
-    def __init__(self, start: tuple) -> None:
-        if start:
-            self._start = date(start[0], start[1], start[2])
-        else:
-            self._start = date.today()
-        self.holiday = []
-        self.lawday = [(5, 14), ]
-
-    def config(self):
-        # 定义国家和地区，对应不同的假日(中国，美国，日本，香港，德国，英国，中东)
-        # 定义交易品种(股票，期货等)
-        pass
-
-    def __str__(self) -> str:
-        TODAY = datetime.strftime(self._start, '%Y-%m-%d')
-        return TODAY
-
-    def __next__(self):
-        self._start += timedelta(days=1)
-        while not self.is_tradeday(self._start):
-            self._start += timedelta(days=1)
-        return self._start
-
-    def __iter__(self):
-        return self
-
-    @classmethod
-    def eq(cls, a: date, o: object) -> bool:
-        if isinstance(o, pandas._libs.tslibs.timestamps.Timestamp):
-            if (a.year, a.month, a.day) == (o.year, o.month, o.day):
-                result = True
-            else:
-                result = False
-        else:
-            result = False
-        return result
-
-    def is_holiday(self, d: date) -> bool:
-        """
-        判断是否是节日
-        """
-        return True if d in self.holiday else False
-
-    def is_lawday(self, d: date) -> bool:
-        if (d.month, d.day) in self.lawday:
-            return True
-        else:
-            return False
-
-    def is_weekend(self, d: date) -> bool:
-        """
-        判断是否是周末
-        """
-        return True if d.weekday() in [5, 6] else False
-
-    def is_tradeday(self, d: date) -> bool:
-        """
-        如果是交易日，就返回True，否则返回False。这个API引用了is_holiday和is_weekend
-        """
-        return False if self.is_holiday(d) or self.is_weekend(d) else True
 
 # 5. 创建交易费率
 

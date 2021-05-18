@@ -4,10 +4,10 @@ import lxml
 import re
 import requests
 from lxml import etree
-from polaris.mysql8 import mysqlHeader, mysqlBase
+from libmysql_utils.mysql8 import mysqlHeader, mysqlBase
 from sqlalchemy import Column, String, Integer, Float, Date, Text
 from sqlalchemy.ext.declarative import declarative_base
-from mars.log_manager import log_wo_return
+from libutils.log import Log
 
 
 __version__ = 2
@@ -61,7 +61,7 @@ class news(object):
     def __str__(self):
         return f"《{self.title}》:{self.author}:{self.date}"
 
-    @log_wo_return
+    @Log
     def _get_date(self):
         """
         eld version:
@@ -80,7 +80,7 @@ class news(object):
     def date(self) -> str:
         return self._date
 
-    @log_wo_return
+    @Log
     def _get_title(self):
         result = self._html.xpath("//div/h1/text()")
         if result:
@@ -112,7 +112,7 @@ class news(object):
             self._author = ""
         return self._author
 
-    @log_wo_return
+    @Log
     def _get_text(self):
         """
         elder version:

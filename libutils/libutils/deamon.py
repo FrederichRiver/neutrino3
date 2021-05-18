@@ -1,14 +1,8 @@
-#!/usr/bin/python38
+#!/usr/bin/python3
 import atexit
 import os
 import signal
 import sys
-
-
-__version__ = '1.0.1'
-
-
-PROG_NAME = 'Neutrino'
 
 
 def deamon(pid_file: str, log_file: str, prog_name: str):

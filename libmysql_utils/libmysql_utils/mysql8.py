@@ -6,12 +6,13 @@ Auther: Friederich River
 """
 import json
 import datetime
-from mars.log_manager import log_wo_return
+from typing import Tuple
+from libutils.log import Log
 import pandas as pd
-import unittest
-from dev_global.env import TIME_FMT, CONF_FILE
-from mars.utils import read_json
+from dev_global.env import TIME_FMT
+from dev_global.path import CONF_FILE
 from pandas import Series
+from pandas.core.frame import DataFrame
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -37,17 +38,12 @@ class mysqlBase(object):
             f"{header.password}"
             f"@{header.host}:{header.port}"
             f"/{header.database}")
-        self.engine = create_engine(
-            mysql_url,
-            encoding='utf8',
-            echo=False)
+        self.engine = create_engine(mysql_url, encoding='utf8', echo=False)
         db_session = sessionmaker(bind=self.engine)
         self.session = db_session()
-        self.id_string = (
-            f"mysql engine <{header.account}@{header.host}>")
-
+ 
     def __str__(self):
-        return self.id_string
+        return f"mysql engine <{self.account}@{self.host}>"
 
     def _version(self):
         """
@@ -80,7 +76,7 @@ class mysqlBase(object):
         col_info.columns = ['col', 'col_type']
         return col_info
 
-    def select_one(self, table, field, condition):
+    def select_one(self, table, field, condition) -> Tuple:
         """
         Result is a tuple like structure data.
         """
@@ -96,7 +92,7 @@ class mysqlBase(object):
         result = self.engine.execute(sql)
         return result
 
-    def select_values(self, table, field):
+    def select_values(self, table, field) -> DataFrame:
         """
         Return a DataFrame type result.
         """
@@ -112,7 +108,7 @@ class mysqlBase(object):
         sql = (f"UPDATE {table} set {field}={value} WHERE {condition}")
         self.engine.execute(sql)
 
-    def condition_select(self, table, field, condition):
+    def condition_select(self, table, field, condition) -> DataFrame:
         """
         Return a DataFrame type result.
         """
@@ -121,17 +117,19 @@ class mysqlBase(object):
         result = pd.DataFrame(select_value)
         return result
 
-    def query(self, sql):
+    def query(self, sql) -> Tuple:
         result = self.engine.execute(sql).fetchone()
         return result
 
     def drop_table(self, table_name: str):
         sql = f"DROP TABLE {table_name}"
         self.engine.execute(sql)
+        return 1
 
     def truncate_table(self, table_name: str):
         sql = f"TRUNCATE TABLE {table_name}"
         self.engine.execute(sql)
+        return 1
 
     def create_table(self, table):
         """
@@ -139,6 +137,7 @@ class mysqlBase(object):
         : param engine: It is a sqlalchemy mysql engine.
         """
         table.metadata.create_all(self.engine)
+        return 1
 
     def create_table_from_table(self, name, table_template):
         """
@@ -154,10 +153,10 @@ class mysqlBase(object):
         self.engine.execute(sql)
         return 1
 
-    @log_wo_return
+    @Log
     def exec(self, SQL: str):
         self.engine.execute(SQL)
-
+        return 1
 
 def _drop_all(base, engine):
     """
@@ -187,8 +186,7 @@ class mysqlHeader(object):
         self.charset = 'utf8'
 
     def __str__(self):
-        result = f"<Acc:{self.account},Host:{self.host},Port:{self.port}>"
-        return result
+        return f"<{self.account}@{self.host}:{self.port}>"
 
 
 def create_table(table, engine):
@@ -304,30 +302,3 @@ class Json2Sql(mysqlBase):
         else:
             return 'NULL'
 
-
-_IP = read_json("IP", CONF_FILE)
-GLOBAL_HEADER = mysqlHeader(acc='stock', pw='stock2020', db='stock', host=_IP[1])
-ROOT_HEADER = mysqlHeader(acc='root', pw='6414939', db='stock', host=_IP[1])
-TASK_HEADER = mysqlHeader(acc='task', pw='task2020', db='task', host=_IP[1])
-LOCAL_HEADER = mysqlHeader('stock', 'stock2020', 'stock')
-VIEWER_HEADER = mysqlHeader('view', 'view2020', 'stock')
-NLP_HEADER = mysqlHeader('stock', 'stock2020', 'natural_language')
-
-
-class TestMysql(unittest.TestCase):
-    def setUp(self) -> None:
-        return super().setUp()
-
-    def tearDown(self) -> None:
-        return super().tearDown()
-
-    def testConnection(self):
-        mysql = mysqlBase(GLOBAL_HEADER)
-        print(mysql._version())
-
-    def testIP(self):
-        print(_IP)
-
-
-if __name__ == '__main__':
-    unittest.main()

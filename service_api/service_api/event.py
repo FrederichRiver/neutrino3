@@ -1,7 +1,7 @@
 #!/usr/bin/python38
 import re
-from libmysql_utils.mysql8 import GLOBAL_HEADER
-from mars.utils import read_url
+from libmysql_utils.header import GLOBAL_HEADER
+from libutils.utils import read_url
 
 
 __all__ = [
@@ -42,7 +42,7 @@ def service_init_index_table():
     """
     from libbasemodel.stock_manager import EventTradeDataManager
     from libbasemodel.stock_model import StockList
-    from dev_global.env import CONF_FILE
+    from dev_global.path import CONF_FILE
     url = read_url('url_hk_stock_list', CONF_FILE)
     stock_list = StockList(GLOBAL_HEADER).get_hk_stock_list(url)
     event = EventTradeDataManager(GLOBAL_HEADER)
@@ -83,9 +83,8 @@ def service_download_index_data():
 
 def service_stock_data_plot():
     from libbasemodel.data_view import CandleView
-    from libmysql_utils.mysql8 import GLOBAL_HEADER
-    from mars.utils import read_json
-    from dev_global.env import CONF_FILE
+    from libutils.utils import read_json
+    from dev_global.path import CONF_FILE
     _, image_path = read_json("image_path", CONF_FILE)
     event = CandleView(GLOBAL_HEADER, image_path)
     event.plot("SZ002460")
@@ -93,9 +92,8 @@ def service_stock_data_plot():
 
 def service_shibor_data_plot():
     from libbasemodel.data_view import ShiborView
-    from libmysql_utils.mysql8 import GLOBAL_HEADER
-    from mars.utils import read_json
-    from dev_global.env import CONF_FILE
+    from libutils.utils import read_json
+    from dev_global.path import CONF_FILE
     _, image_path = read_json("image_path", CONF_FILE)
     event = ShiborView(GLOBAL_HEADER, image_path)
     event.plot()
@@ -103,7 +101,6 @@ def service_shibor_data_plot():
 
 def service_get_shibor_data():
     from libbasemodel.shibor import ShiborData
-    from libmysql_utils.mysql8 import GLOBAL_HEADER
     event = ShiborData(GLOBAL_HEADER)
     event.shibor_url = event.current_month
     df = event.get_excel_object(event.shibor_url)
@@ -112,7 +109,6 @@ def service_get_shibor_data():
 
 def service_record_company_infomation():
     from libbasemodel.company import EventCompany
-    from libmysql_utils.mysql8 import GLOBAL_HEADER
     event = EventCompany(GLOBAL_HEADER)
     stock_list = event.get_all_stock_list()
     for stock_code in stock_list:
@@ -121,7 +117,6 @@ def service_record_company_infomation():
 
 def service_record_company_stock_structure():
     from libbasemodel.company import EventCompany
-    from libmysql_utils.mysql8 import GLOBAL_HEADER
     event = EventCompany(GLOBAL_HEADER)
     stock_list = event.get_all_stock_list()
     for stock in stock_list:
@@ -129,7 +124,7 @@ def service_record_company_stock_structure():
 
 
 def service_download_news():
-    from dev_global.env import SOFT_PATH
+    from dev_global.path import SOFT_PATH
     from libcontext.news_downloader import neteaseNewsSpider
     header = mysqlHeader('stock', 'stock2020', 'corpus')
     event = neteaseNewsSpider(header, SOFT_PATH)

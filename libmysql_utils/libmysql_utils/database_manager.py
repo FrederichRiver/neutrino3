@@ -5,11 +5,11 @@ import sys
 import time
 # import re
 import datetime
-from mars.log_manager import info_log, log_wo_return
+from libmsg.log_manager import info_log, log_wo_return
 from libmysql_utils.mysql8 import GLOBAL_HEADER, create_table, mysqlBase, mysqlHeader
 from venus.stock_base import StockEventBase
 from venus.form import formTemplate, formFinanceTemplate, formInfomation
-from mars.utils import read_json
+from libmsg.utils import read_json
 
 
 __version__ = '1.1.6'

@@ -3,7 +3,7 @@
 
 import copy
 
-from .position import Position
+from .investment import Investment
 from .report import Report
 from .order import Order
 
@@ -29,8 +29,8 @@ class Account(object):
         # init cash
         self.init_cash = init_cash
         # Here instead with investment group
-        self.current = Position(cash=init_cash)
-        self.positions = {}
+        self.current = Investment(cash=init_cash)
+        self.Investments = {}
         # return
         self.rtn = 0
         # cost
@@ -42,8 +42,8 @@ class Account(object):
         self.earning = 0
         self.last_trade_date = last_trade_date
 
-    def get_positions(self):
-        return self.positions
+    def get_Investments(self):
+        return self.Investments
 
     def get_cash(self):
         return self.current.position["cash"]
@@ -67,7 +67,7 @@ class Account(object):
             self.rtn += profit
 
     def update_order(self, order, trade_val, cost, trade_price):
-        # if stock is sold out, no stock price information in Position, then we should update account first, then update current position
+        # if stock is sold out, no stock price information in Investment, then we should update account first, then update current position
         # if stock is bought, there is no stock in current position, update current, then update account
         # The cost will be substracted from the cash at last. So the trading logic can ignore the cost calculation
         trade_amount = trade_val / trade_price
@@ -142,9 +142,9 @@ class Account(object):
         # set today_account_value to position
         self.current.position["today_account_value"] = today_account_value
         self.current.update_weight_all()
-        # update positions
+        # update Investments
         # note use deepcopy
-        self.positions[today] = copy.deepcopy(self.current)
+        self.Investments[today] = copy.deepcopy(self.current)
 
         # finish today's updation
         # reset the daily variables
@@ -155,7 +155,7 @@ class Account(object):
 
     def load_account(self, account_path):
         report = Report()
-        position = Position()
+        position = Investment()
         last_trade_date = position.load_position(account_path / "position.xlsx")
         report.load_report(account_path / "report.csv")
 

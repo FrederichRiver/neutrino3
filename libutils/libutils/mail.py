@@ -5,6 +5,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
+from libutils.utils import read_url
+from dev_global.path import CONF_FILE
 
 __version__ = '2.0.10'
 __all__ = ['event_send_mail']
@@ -19,7 +21,6 @@ class MailServer(object):
         """
         Init basic infomation of mail sender.
         """
-        from jupiter.utils import read_url, CONF_FILE
         self.__mail_host = "smtp.163.com"
         self.__mail_user = "friederich"
         self.__mail_pw = "monster1983"
@@ -66,7 +67,8 @@ class MailServer(object):
     def mail_resolve(self, mail):
         mail_obj = guest_mail(mail['Type'])
         mail_obj.set_mail(
-                        title=mail['Title'], content=mail['Content'],
+                        title=mail['Title'],
+                        content=mail['Content'],
                         mail_list=mail['Reciever']
                     )
         if 'Attachment' in mail.keys():
@@ -192,10 +194,10 @@ def test():
 
 
 def event_send_mail():
-    mercury = MailServer()
-    mercury.smtp_ssl_config()
-    mercury.auto_load_mail()
-    mercury.server_shutdown()
+    event = MailServer()
+    event.smtp_ssl_config()
+    event.auto_load_mail()
+    event.server_shutdown()
 
 
 if __name__ == "__main__":

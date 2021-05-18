@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from setuptools import setup, find_packages
 from libstrategy import __version__ as v
+
 setup(
         name='libstrategy',
         version=v,

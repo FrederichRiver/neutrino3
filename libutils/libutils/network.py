@@ -1,12 +1,11 @@
 #! /usr/bin/python3
 import json
-from random import randint
-from dev_global.env import COOKIE_FILE
-from dev_global.env import HEAD_FILE
 import os
 import requests
+from dev_global.path import COOKIE_FILE, HEAD_FILE
 from lxml import etree
-from mars.utils import read_json
+from random import randint
+from .utils import read_json
 
 
 class cookie(object):
@@ -159,9 +158,3 @@ def fetch_html_object(url, header):
     response.encoding = response.apparent_encoding
     result = etree.HTML(response.text)
     return result
-
-
-if __name__ == "__main__":
-    cuky = cookie()
-    result = cuky.get_cookie('cninfo')
-    print(result)

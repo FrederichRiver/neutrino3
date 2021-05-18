@@ -3,21 +3,19 @@ import os
 import signal
 import sys
 import time
-from dev_global.env import LOG_FILE, PID_FILE, TASK_FILE, MANUAL
+from dev_global.env import PROG_NAME
+from dev_global.path import LOG_FILE, PID_FILE, TASK_FILE, MANUAL
 from libmysql_utils.mysql8 import mysqlBase, TASK_HEADER
 from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from libtask.task_manager import taskManager, taskConfig
 from threading import Thread
-from mars.log_manager import info_log, error_log
-from dev_global.basic import deamon
+from libutils.log import neulog
+from libutils.deamon import deamon
 from libbasemodel.database_manager import event_initial_database
 
 
 __version__ = '1.7.15'
-
-
-PROG_NAME = 'Neutrino'
 
 
 def logfile_monitor(log_file):
@@ -34,7 +32,7 @@ def logfile_monitor(log_file):
                 os.dup2(write_null.fileno(), 1)
             with open(log_file, 'a') as error_null:
                 os.dup2(error_null.fileno(), 2)
-            info_log(f"{PROG_NAME} started with pid {os.getpid()}.")
+            neulog.info(f"{PROG_NAME} started with pid {os.getpid()}.")
 
 
 def task_pipeline(taskfile=None, task_pipeline_name='Default'):
@@ -55,7 +53,7 @@ def task_pipeline(taskfile=None, task_pipeline_name='Default'):
         job_defaults={'max_instance': 5},
         options={"pool_pre_ping": True, "pool_recycle": 14400})
     task_manager.start()
-    info_log(f"{PROG_NAME} started with pid {os.getpid()}.")
+    neulog.info(f"{PROG_NAME} started with pid {os.getpid()}.")
     while True:
         task_manager.task_report()
         task_manager.task_solver.load_event()
@@ -64,7 +62,6 @@ def task_pipeline(taskfile=None, task_pipeline_name='Default'):
         time.sleep(3600)
 
 
-# @system_loop
 def main(pid_file: str, log_file: str, task_file: str, prog_name: str):
     deamon(pid_file, log_file, prog_name)
     LM = Thread(target=logfile_monitor, args=(log_file,), name='neu_lm', daemon=True)
@@ -86,11 +83,11 @@ if __name__ == '__main__':
             sys.stdout.flush()
             with open(LOG_FILE, 'a') as write_null:
                 os.dup2(write_null.fileno(), 1)
-                info_log(f"{PROG_NAME} is stopped.")
+                neulog.info(f"{PROG_NAME} is stopped.")
             with open(PID_FILE) as f:
                 os.kill(int(f.read()), signal.SIGTERM)
         else:
-            error_log(f"{PROG_NAME} is not running.")
+            neulog.error(f"{PROG_NAME} is not running.")
             raise SystemExit(1)
     elif sys.argv[1] == 'clear':
         with open(LOG_FILE, 'w') as f:

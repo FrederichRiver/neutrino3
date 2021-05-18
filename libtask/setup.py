@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 from dev_global.env import GITHUB_URL, EMAIL
 
-v = (2, 16, 62)
+v = (2, 16, 63)
 
 setup(
         name='libtask',

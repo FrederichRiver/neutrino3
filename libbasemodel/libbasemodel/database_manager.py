@@ -5,11 +5,12 @@ import sys
 import time
 # import re
 import datetime
-from mars.log_manager import info_log, log_wo_return
-from libmysql_utils.mysql8 import GLOBAL_HEADER, create_table, mysqlBase, mysqlHeader
-from venus.stock_base import StockEventBase
-from venus.form import formTemplate, formFinanceTemplate, formInfomation
-from mars.utils import read_json
+from libutils.log import neulog, Log
+from libmysql_utils.mysql8 import create_table, mysqlBase, mysqlHeader
+from libmysql_utils.header import GLOBAL_HEADER
+from libbasemodel.stock_model import StockEventBase
+from libbasemodel.form import formTemplate, formFinanceTemplate, formInfomation
+from libutils.utils import read_json
 
 
 __version__ = '1.1.6'
@@ -80,7 +81,7 @@ class databaseBackup(object):
         return file_name, file_time
 
 
-@log_wo_return
+@Log
 def event_initial_database():
     mysql = mysqlBase(GLOBAL_HEADER)
     create_table(formTemplate, mysql.engine)
@@ -88,17 +89,17 @@ def event_initial_database():
     create_table(formInfomation, mysql.engine)
 
 
-@log_wo_return
+@Log
 def event_mysql_backup():
     event = databaseBackup()
     event.get_database_list()
     event.database_backup()
     event.file_compress()
-    info_log("Database backup successfully.")
+    neulog.info("Database backup successfully.")
 
 
 def event_mysql_remove_backup():
-    from mars.database_manager import databaseBackup
+    from libmysql_utils.database_manager import databaseBackup
     event = databaseBackup()
     event.remove_old_backup()
 

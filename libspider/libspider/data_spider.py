@@ -1,12 +1,12 @@
 #!/usr/bin/python38
 from libspider.spider_model import EMSpider
 from libspider.form_model import form_money_supply, form_ppi, form_cpi, form_gdp, form_pmi
-from mars.log_manager import log_wo_return
+from libutils.log import Log
 from libmysql_utils.mysql8 import mysqlBase
 
 
 class DataLoader(mysqlBase):
-    @log_wo_return
+    @Log
     def record(self, data):
         self.session.merge(data)
         self.session.commit()

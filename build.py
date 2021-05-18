@@ -1,10 +1,14 @@
 #!/usr/bin/python38
 import os
 
-PROJ_PATH = '/home/friederich/Dev/neutrino2'
+PROJ_PATH = os.getenv('NEU_PATH')
 # Test
-lib_list = ['dev_global', 'libstrategy', 'libnlp', 'mars', 'libcontext', 'service_api', 'libmysql_utils', 'libbasemodel', 'libtask', 'libspider']
+lib_list = [
+    'dev_global','libutils', 'libmysql_utils',
+    'libbasemodel', 'libspider', 'libnlp',
+    'libcontext', 'service_api', 'libstrategy']
 for lib in lib_list:
+    print(f"[Building {lib}]")
     # go into library directory
     os.chdir(f"{PROJ_PATH}/{lib}")
     # run setup script

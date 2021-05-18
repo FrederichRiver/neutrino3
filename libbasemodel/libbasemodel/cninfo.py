@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from mars.network import userAgent, cookie
+from libutils.network import userAgent, cookie
 
 
 class cninfoSpider(object):

@@ -1,14 +1,14 @@
 #!/usr/bin/python3
 import datetime
-from mars.network import RandomHeader
-from mars.log_manager import log_with_return, log_wo_return
-from mars.utils import trans
+from libutils.network import RandomHeader
+from libutils.log import Log
+from libutils.utils import trans
 import pandas as pd
 import re
 import json
 import numpy as np
 import requests
-import lxml.etree
+from lxml import etree
 from dev_global.env import TIME_FMT
 from libmysql_utils.mysql8 import (mysqlBase, mysqlHeader, Json2Sql)
 from pandas import DataFrame
@@ -120,9 +120,8 @@ class StockBase(mysqlBase):
         if response.status_code == 200:
             # setting encoding
             response.encoding = response.apparent_encoding
-            html = lxml.etree.HTML(response.text)
+            html = etree.HTML(response.text)
         elif response.status_code == 304:
-            print(response.status_code)
             html = None
         else:
             html = None
@@ -400,7 +399,7 @@ class USStockList(eastmoneySpider, StockBase):
         us_stock_list = self.resolve_us_stock_list(lines)
         return us_stock_list
 
-    @log_with_return
+    @Log
     def resolve_us_stock_list(self, stock_code):
         stock_list = []
         for stock in stock_code:
@@ -411,7 +410,7 @@ class USStockList(eastmoneySpider, StockBase):
                     stock_list.append(x.group(2))
         return stock_list
 
-    @log_wo_return
+    @Log
     def record_us_stock(self, stock_code):
         self.insert('us_stock_manager', {"stock_code": f"'{stock_code}'"})
 
@@ -464,7 +463,7 @@ class dataLine(object):
         # self.data = df
         self.table_name = table_name
 
-    @log_with_return
+    @Log
     def insert_sql(self, stock_code, df):
         """
         Result: Return a list of sql.
@@ -483,7 +482,7 @@ class dataLine(object):
             result.append(result_sql)
         return result
 
-    @log_with_return
+    @Log
     def update_sql(self, df, primary_key):
         """
         Result: Return a list of sql.

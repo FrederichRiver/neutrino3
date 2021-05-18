@@ -4,9 +4,9 @@ import requests
 from lxml import etree
 import lxml
 from libcontext.model import news, formArticle
-from polaris.mysql8 import mysqlHeader, mysqlBase
+from libmysql_utils.mysql8 import mysqlHeader, mysqlBase
 from sqlalchemy.ext.declarative import declarative_base
-from mars.log_manager import log_with_return, log_wo_return
+from libutils.log import Log
 
 
 __version__ = '1.2.4'
@@ -32,7 +32,7 @@ class newsSpiderBase(object):
             for url in self.href:
                 f.write(str(url) + '\n')
 
-    @log_wo_return
+    @Log
     def load_href_file(self, href_file):
         with open(href_file, 'r') as f:
             url = f.readlines()
@@ -194,7 +194,7 @@ class neteaseFinanceSpider(newsSpiderBase):
             resp.text)
         self.href += result
 
-    @log_with_return
+    @Log
     def extract_article(self, url):
         text = requests.get(url)
         html = etree.HTML(text.text)
@@ -202,7 +202,7 @@ class neteaseFinanceSpider(newsSpiderBase):
         art.url = url
         return art
 
-    @log_wo_return
+    @Log
     def record_article(self, art: news):
         insert_data = {
                 # 'title': f"{art.title}",

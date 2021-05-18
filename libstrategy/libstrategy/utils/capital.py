@@ -46,6 +46,7 @@ class CapitalBase(object):
         self.Fee = TransferFee()
         self.Comm = StockCommission()
         self.count = 0
+        self.weight = 0.0
 
     def buy(self, **args):
         self.volume += args.get('volume')

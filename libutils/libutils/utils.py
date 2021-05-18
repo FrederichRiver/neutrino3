@@ -1,13 +1,52 @@
 #!/usr/bin/python3
+import os
 import json
-import logging
 from typing import Tuple
 import pandas as pd
 import datetime
 import re
-import functools
 import psutil
-from dev_global.env import LOG_FILE, TIME_FMT
+from dev_global.path import LOG_FILE
+from dev_global.env import TIME_FMT
+
+
+class filePack(object):
+    def __init__(self):
+        if os.environ.get('LOGNAME') == 'friederich':
+            self.path = '/home/friederich/Downloads/tmp/'
+            self.dest_path = '/home/friederich/Downloads/neutrino/'
+        else:
+            self.path = '/root/download/'
+            self.dest_path = '/root/ftp/'
+        self.flag_list = []
+
+    def get_file_flag(self):
+        """
+        recognite file name like SH000300_20200501.csv
+        """
+        flag_list = os.listdir(self.path)
+        temp_flag_list = []
+        for flag in flag_list[:5]:
+            result = re.match(r'^(\w{2}\d{6}\_)(\d{8})', flag)
+            if result:
+                temp_flag_list.append(result[2])
+        self.flag_list = list(set(temp_flag_list))
+
+    def package(self, flag):
+        result = os.listdir(self.path)
+        pack_list = []
+        for file_name in result:
+            file_pattern = re.compile(r"^\w{2}\d{6}\_" + flag)
+            if re.match(file_pattern, file_name):
+                pack_list.append(file_name)
+        if pack_list:
+            pack_file = ' '.join(pack_list)
+            os.chdir(self.path)
+            os.system('pwd')
+            os.system(f"tar -czvf stock_data_{flag}.tar.gz {pack_file}")
+            os.system(f"cp stock_data_{flag}.tar.gz {self.dest_path}")
+        for data_file in pack_list:
+            os.system(f"rm {data_file}")
 
 
 def read_json(key: str, js_file: str) -> Tuple:
@@ -32,25 +71,6 @@ def read_url(key, url_file) -> str:
     """
     _, url = read_json(key, url_file)
     return url
-
-
-def record_base(text, level=logging.INFO):
-    logging.basicConfig(filename=LOG_FILE,
-                        level=logging.INFO,
-                        filemode='a',
-                        format="%(asctime)s [%(levelname)s]: %(message)s",
-                        datefmt="%Y-%m-%d %H:%M:%S")
-    if level == logging.INFO:
-        logging.info(text)
-    elif level == logging.WARNING:
-        logging.warn(text)
-    elif level == logging.ERROR:
-        logging.error(text)
-
-
-INFO = functools.partial(record_base, level=logging.INFO)
-ERROR = functools.partial(record_base, level=logging.ERROR)
-WARN = functools.partial(record_base, level=logging.WARNING)
 
 
 class Resource(object):
@@ -131,8 +151,7 @@ def data_clean(df):
             else:
                 pass
         except Exception as e:
-            ERROR("Error while data cleaning.")
-            ERROR(e)
+            pass
     return df
 
 

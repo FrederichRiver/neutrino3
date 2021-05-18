@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import re
 from libbasemodel.stock_model import StockBase, dataLine
-from mars.utils import read_url
-from dev_global.env import CONF_FILE
-from mars.log_manager import log_with_return
+from libutils.utils import read_url
+from dev_global.path import CONF_FILE
+from libutils.log import Log
 
 
 class EventFinanceReport(StockBase):
@@ -23,13 +23,13 @@ class EventFinanceReport(StockBase):
                 for sql in insert_sql_list:
                     self.exec(sql)
 
-    @log_with_return
+    @Log
     def get_balance_sheet(self, stock_code, url):
         """
         read csv data and return a dataframe object.
         """
         from libbasemodel.form import balance_column
-        from mars.utils import data_clean
+        from libutils.utils import data_clean
         # config file is a url file.
         # _, url = read_json('URL_163_MONEY', CONF_FILE)
         df = pd.read_csv(url, encoding='gb18030')
@@ -65,14 +65,14 @@ class EventFinanceReport(StockBase):
                 for sql in insert_sql_list:
                     self.exec(sql)
 
-    @log_with_return
+    @Log
     def get_cashflow(self, stock_code, url):
         """
         read csv data and return a dataframe object.
         """
         import re
         from libbasemodel.form import cashflow_column
-        from mars.utils import data_clean
+        from libutils.utils import data_clean
         # config file is a url file.
         # _, url = read_json('URL_163_MONEY', CONF_FILE)
         df = pd.read_csv(url, encoding='gb18030')
@@ -108,14 +108,14 @@ class EventFinanceReport(StockBase):
                 for sql in insert_sql_list:
                     self.exec(sql)
 
-    @log_with_return
+    @Log
     def get_income(self, stock_code, url):
         """
         read csv data and return a dataframe object.
         """
         import re
         from libbasemodel.form import income_column
-        from mars.utils import data_clean
+        from libutils.utils import data_clean
         # config file is a url file.
         # _, url = read_json('URL_163_MONEY', CONF_FILE)
         df = pd.read_csv(url, encoding='gb18030')

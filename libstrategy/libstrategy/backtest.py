@@ -17,8 +17,8 @@ from .account import Account
 from ...config import C
 from ...log import get_module_logger
 from ...data.dataset.utils import get_level_index
+from libutils.log import neulog
 
-LOG = get_module_logger("backtest")
 
 
 def backtest(pred, strategy, trade_exchange, shift, verbose, account, benchmark: pd.Series):
@@ -80,7 +80,7 @@ def backtest(pred, strategy, trade_exchange, shift, verbose, account, benchmark:
         # for loop predict date and trading date
         # print
         if verbose:
-            LOG.info("[I {:%Y-%m-%d}]: trade begin.".format(trade_date))
+            neulog.info("[I {:%Y-%m-%d}]: trade begin.".format(trade_date))
 
         # 1. Load the score_series at pred_date
         try:
@@ -89,7 +89,7 @@ def backtest(pred, strategy, trade_exchange, shift, verbose, account, benchmark:
                 "score"
             ]  # pd.Series(index:stock_id, data: score)
         except KeyError:
-            LOG.warning("No score found on predict date[{:%Y-%m-%d}]".format(trade_date))
+            neulog.warning("No score found on predict date[{:%Y-%m-%d}]".format(trade_date))
             score_series = None
 
         if score_series is not None and score_series.count() > 0:  # in case of the scores are all None

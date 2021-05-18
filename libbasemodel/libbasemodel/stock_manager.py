@@ -6,10 +6,10 @@ import requests
 from datetime import timedelta
 from pandas import DataFrame
 from dev_global.var import stock_table_column, stock_table_column2
-from dev_global.env import CONF_FILE
+from dev_global.path import CONF_FILE
 # from dev_global.var import stock_table_column
-from mars.log_manager import log_with_return, log_wo_return
-from mars.utils import read_url, drop_space
+from libutils.log import Log
+from libutils.utils import read_url, drop_space
 from .stock_model import StockBase
 from .form import formStockManager
 
@@ -85,7 +85,7 @@ class EventTradeDataManager(StockBase):
         result = self.session.query(formStockManager.stock_code).filter_by(stock_code=stock_code).first()
         return result
 
-    @log_with_return
+    @Log
     def create_stock_table(self, stock_code):
         if self.create_table_from_table(stock_code, 'template_stock'):
             stock = formStockManager(stock_code=stock_code, create_date=self.Today)
@@ -106,7 +106,7 @@ class EventTradeDataManager(StockBase):
         df.dropna(axis=0, how='any', inplace=True)
         return df
 
-    @log_wo_return
+    @Log
     def init_stock_data(self, stock_code):
         """
         used when first time download stock data.
@@ -124,7 +124,7 @@ class EventTradeDataManager(StockBase):
                         {"update_date": self.Today})
             self.session.commit()
 
-    @log_wo_return
+    @Log
     def download_stock_data(self, stock_code):
         # fetch last update date.
         update = self.session.query(formStockManager.update_date).filter_by(stock_code=stock_code).first()
@@ -144,7 +144,7 @@ class EventTradeDataManager(StockBase):
                 sql = self.j2sql.to_sql_insert(data, table_name=stock_code)
                 self.engine.execute(sql)
 
-    @log_wo_return
+    @Log
     def get_trade_detail_data(self, stock_code, trade_date):
         # trade_date format: '20191118'
         DOWNLOAD_PATH = '/home/friederich/Downloads/stock_data/'

@@ -11,8 +11,8 @@ from dev_global.env import CONF_FILE
 import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from mars.log_manager import log_with_return, log_wo_return
-from mars.utils import read_json
+from libutils.log import Log
+from libutils.utils import read_json
 # modules loaded into module list
 import service_api.event
 import service_api.event2
@@ -92,7 +92,7 @@ class taskManager(BackgroundScheduler):
         """
         self._task_list = self.get_jobs()
 
-    @log_with_return
+    @Log
     def check_task_list(self):
         """
         Set flag for tasks. 'A' for new task, 'U' for exist task.
@@ -106,7 +106,7 @@ class taskManager(BackgroundScheduler):
                     task.flag = self.config.FLAG.MOD
         return temp_task_list
 
-    @log_wo_return
+    @Log
     def task_manage(self, task_list):
         """
         Manage task manager to add or update tasks.
@@ -121,8 +121,9 @@ class taskManager(BackgroundScheduler):
                 self.reschedule_job(
                     task.name, trigger=task.trigger,
                     timzone=pytz.timezone(self.config.timezone))
+        return 1
 
-    @log_with_return
+    @Log
     def load_task_list(self):
         with open(self.taskfile, 'r') as f:
             jsdata = json.load(f)
@@ -162,7 +163,7 @@ class taskSolver(object):
         else:
             raise FileNotFoundError(taskfile)
 
-    @log_wo_return
+    @Log
     def load_event(self):
         """
         This function will reload modules automatically.
@@ -171,8 +172,9 @@ class taskSolver(object):
             importlib.reload(mod)
             for func in mod.__all__:
                 self.func_list[func] = eval(f"{mod.__name__}.{func}")
+        return 1
 
-    @log_with_return
+    @Log
     def task_resolve(self, jsdata: dict):
         task = None
         if task_name := jsdata['task']:
@@ -180,7 +182,7 @@ class taskSolver(object):
                 task = taskBase(task_name, func, trigger)
         return task
 
-    @log_with_return
+    @Log
     def _trigger_resolve(self, jsdata):
         """
         Resolve the trigger.

@@ -1,12 +1,12 @@
 #!/usr/bin/python38
-from mars.log_manager import log_wo_return
+from libutils.log import Log
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
 from dev_global.var import stock_interest_column
-from dev_global.env import CONF_FILE
+from dev_global.path import CONF_FILE
 from libmysql_utils.mysql8 import mysqlHeader
-from venus.stock_base2 import StockBase
+from libbasemodel.stock_model import StockBase
 
 
 __version__ = '1.2.4'
@@ -30,7 +30,7 @@ class EventInterest(StockBase):
         """
         Initial interest table.
         """
-        from venus.form import formInterest
+        from libbasemodel.form import formInterest
         self.create_table_from_table("stock_interest", formInterest.__tablename__)
 
     def resolve_interest_table(self, stock_code: str):
@@ -57,7 +57,7 @@ class EventInterest(StockBase):
             result = DataFrame()
         return result
 
-    @log_wo_return
+    @Log
     def record_interest(self, stock_code: str) -> None:
         df = self.resolve_interest_table(stock_code)
         json_data = self.j2sql.dataframe_to_json(df, stock_interest_column)
@@ -120,7 +120,7 @@ class EventStockData(StockBase):
         result['trade_date'] = df.index
         return result
 
-    @log_wo_return
+    @Log
     def record_factor(self, stock_code, df):
         self.j2sql.load_table(stock_code)
         tmp_df = self.j2sql.dataframe_to_json(df, keys=['adjust_factor', 'trade_date'])
