@@ -212,9 +212,17 @@ class TradeMessage(object):
 # 6. 创建资产组合价值跟踪
 # 7. 回测评估
 
+class StrategyBase(object):
+    def __init__(self, from_date, to_date ) -> None:
+        self.from_date = from_date
+        self.to_date = to_date
 
-class PairTrade(object):
-    def __init__(self, stock_1: str, stock_2: str) -> None:
+class PairTrade(StrategyBase):
+    """
+    Strategy class
+    """
+    def __init__(self, stock_1: str, stock_2: str, from_date, to_date ) -> None:
+        super(PairTrade, self).__init__(from_date, to_date)
         self._ratio = 0.0
         self.stock_1 = stock_1
         self.quant_1 = 0
@@ -261,7 +269,8 @@ class PairTrade(object):
             result = 0.9
         else:
             result = 0
-        return result, model.params[1], model.params[0]
+        std = np.std(e)
+        return result, model.params[1], model.params[0], std
 
     def trade(self, signal: SignalBase, price_a: float, price_b: float):
         if signal.signal == 0:
@@ -304,6 +313,36 @@ class PairTrade(object):
         for m in self.trade_list:
             profit += m.price * m.bid
         print(round(profit, 2))
+
+
+class BackTest(object):
+    def __init__(self, strategy: StrategyBase) -> None:
+        super().__init__()
+        self.trade = []
+        self.strategy = strategy
+        self.annualized_return = 0.0
+        self.ret = 0.0
+        self.max_draw = 0.0
+        self.period = datetime.strptime(self.strategy.to_date, '%Y-%m-%d') - datetime.strptime(self.strategy.from_date, '%Y-%m-%d')
+
+    def get_trade_data(self, trade: list):
+        self.trade = trade
+
+    def time_delta(self) -> timedelta:
+        self.period = self.strategy.to_date - self.strategy.from_date
+        return self.period
+
+    def annual_return(self):
+        self.annualized_return = self.ret * 365 / self.period.days
+        print(self.annualized_return)
+
+    def report(self):
+        profit = 0.0
+        for m in self.trade:
+            profit += m.price * m.bid
+        print(round(profit, 2))
+        self.ret = profit / 970
+        self.annual_return()
 
 
 class MarketBase(object):
@@ -361,7 +400,7 @@ class InvestmentGroup(object):
 
 
 def backtest2():
-    head = mysqlHeader(acc='stock', pw='stock2020', db='stock')
+    head = mysqlHeader(acc='stock', pw='stock2020', db='stock', host='115.159.1.221')
     stock_market = StockMarket('2019-01-01', '2021-03-01')
     print(stock_market)
     A = 'SH600000'
@@ -370,11 +409,12 @@ def backtest2():
     stock_market.add_capital(B)
     stock_market.print_stock_list()
     stock_market.init_data(head)
-    Trade = PairTrade(A, B)
-    result, beta, alpha = Trade.cointegration_check(stock_market.data[A], stock_market.data[B])
+    Trade = PairTrade(A, B, '2019-01-01', '2021-03-01')
+    result, beta, mean, std = Trade.cointegration_check(stock_market.data[A], stock_market.data[B])
+    print(mean, std)
     Trade.set_ratio(beta)
     Signal = SignalPairTrade()
-    Signal.set_threshold(high=0.02, low=-0.02, beta=beta, alpha=alpha)
+    Signal.set_threshold(high=std, low=-std, beta=beta, alpha=mean)
     print(Signal.signal)
     for index, row in stock_market:
         Signal.get_data(row[A], row[B])
@@ -382,7 +422,9 @@ def backtest2():
         # print(Signal.signal)
     Signal.set_end()
     print(Trade)
-    Trade.summary()
+    backtest = BackTest(Trade)
+    backtest.get_trade_data(Trade.trade_list)
+    backtest.report()
 
 
 if __name__ == '__main__':

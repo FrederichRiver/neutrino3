@@ -1,3 +1,4 @@
+import datetime
 import pandas as pd
 from datetime import date
 from pandas import DataFrame
@@ -49,3 +50,6 @@ StockData.data = StockData.query('SH600000', '2019-01-01', '2019-03-30')
 for d in event:
     data = StockData.get_data(pd.Timestamp(d))
     print(d, data)
+
+StockData.data.loc[pd.Timestamp(datetime.date(2021,5,19))] = [1.0, 2.1, 1.3, 1.7]
+print(StockData.data)
