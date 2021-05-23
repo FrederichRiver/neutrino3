@@ -4,7 +4,7 @@ import re
 import lxml
 import pandas
 from libbasemodel.stock_model import StockBase
-from libutils.log import Log
+from libutils.log import Log, method
 # from venus.stock_base import StockEventBase
 
 
@@ -23,6 +23,7 @@ class EventCompany(StockBase):
                 result.append(df)
         return result
 
+    @method
     @Log
     def record_company_infomation(self, stock_code):
         url = f"http://quotes.money.163.com/f10/gszl_{stock_code[2:]}.html#01f02"
@@ -40,6 +41,7 @@ class EventCompany(StockBase):
         self.engine.execute(insert_sql)
         return 1
 
+    @method
     @Log
     def record_stock_structure(self, stock_code):
         url = f"https://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructureHistory/stockid/{stock_code[2:]}/stocktype/TotalStock.phtml"

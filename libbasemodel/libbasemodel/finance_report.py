@@ -6,7 +6,7 @@ import re
 from libbasemodel.stock_model import StockBase, dataLine
 from libutils.utils import read_url
 from dev_global.path import CONF_FILE
-from libutils.log import Log
+from libutils.log import Log, method
 
 
 class EventFinanceReport(StockBase):
@@ -23,6 +23,7 @@ class EventFinanceReport(StockBase):
                 for sql in insert_sql_list:
                     self.exec(sql)
 
+    @method
     @Log
     def get_balance_sheet(self, stock_code, url):
         """
@@ -65,6 +66,7 @@ class EventFinanceReport(StockBase):
                 for sql in insert_sql_list:
                     self.exec(sql)
 
+    @method
     @Log
     def get_cashflow(self, stock_code, url):
         """

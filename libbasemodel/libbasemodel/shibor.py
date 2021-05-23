@@ -4,7 +4,7 @@ import re
 from libmysql_utils.mysql8 import mysqlHeader
 from libbasemodel.stock_model import StockBase
 from dev_global.env import TIME_FMT
-from libutils.log import Log
+from libutils.log import Log, method
 
 
 class ShiborData(StockBase):
@@ -42,6 +42,7 @@ class ShiborData(StockBase):
             f"&nameOld=Shibor%CA%FD%BE%DD{y}_{m}.xls"
             f"&shiborSrc=http%3A%2F%2Fwww.shibor.org%2Fshibor%2F&downLoadPath=data")
 
+    @method
     @Log
     def get_shibor_data(self, df: pd.DataFrame):
         if not df.empty:

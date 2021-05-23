@@ -1,5 +1,5 @@
 #!/usr/bin/python38
-from libutils.log import Log
+from libutils.log import Log, method
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
@@ -57,6 +57,7 @@ class EventInterest(StockBase):
             result = DataFrame()
         return result
 
+    @method
     @Log
     def record_interest(self, stock_code: str) -> None:
         df = self.resolve_interest_table(stock_code)
@@ -120,6 +121,7 @@ class EventStockData(StockBase):
         result['trade_date'] = df.index
         return result
 
+    @method
     @Log
     def record_factor(self, stock_code, df):
         self.j2sql.load_table(stock_code)

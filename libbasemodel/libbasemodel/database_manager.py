@@ -5,7 +5,7 @@ import sys
 import time
 # import re
 import datetime
-from libutils.log import neulog, Log
+from libutils.log import neulog, Log, method
 from libmysql_utils.mysql8 import create_table, mysqlBase, mysqlHeader
 from libmysql_utils.header import GLOBAL_HEADER
 from libbasemodel.stock_model import StockBase
@@ -81,14 +81,13 @@ class databaseBackup(object):
         return file_name, file_time
 
 
+@method
 @Log
 def event_initial_database():
     mysql = mysqlBase(GLOBAL_HEADER)
-    create_table(formTemplate, mysql.engine)
-    create_table(formFinanceTemplate, mysql.engine)
-    create_table(formInfomation, mysql.engine)
+    create_table(Base, mysql.engine)
 
-
+@method
 @Log
 def event_mysql_backup():
     event = databaseBackup()

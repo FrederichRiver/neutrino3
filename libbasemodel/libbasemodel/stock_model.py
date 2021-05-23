@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import datetime
 from libutils.network import RandomHeader
-from libutils.log import Log
+from libutils.log import Log, method
 from libutils.utils import trans
 import pandas as pd
 import re
@@ -407,6 +407,7 @@ class USStockList(eastmoneySpider, StockBase):
         us_stock_list = self.resolve_us_stock_list(lines)
         return us_stock_list
 
+    @method
     @Log
     def resolve_us_stock_list(self, stock_code):
         stock_list = []
@@ -418,6 +419,7 @@ class USStockList(eastmoneySpider, StockBase):
                     stock_list.append(x.group(2))
         return stock_list
 
+    @method
     @Log
     def record_us_stock(self, stock_code):
         self.insert('us_stock_manager', {"stock_code": f"'{stock_code}'"})
@@ -471,6 +473,7 @@ class dataLine(object):
         # self.data = df
         self.table_name = table_name
 
+    @method
     @Log
     def insert_sql(self, stock_code, df):
         """
@@ -490,6 +493,7 @@ class dataLine(object):
             result.append(result_sql)
         return result
 
+    @method
     @Log
     def update_sql(self, df, primary_key):
         """
