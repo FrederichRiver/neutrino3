@@ -8,8 +8,8 @@ import datetime
 from libutils.log import neulog, Log
 from libmysql_utils.mysql8 import create_table, mysqlBase, mysqlHeader
 from libmysql_utils.header import GLOBAL_HEADER
-from libbasemodel.stock_model import StockEventBase
-from libbasemodel.form import formTemplate, formFinanceTemplate, formInfomation
+from libbasemodel.stock_model import StockBase
+from libbasemodel.form import Base
 from libutils.utils import read_json
 
 
@@ -106,7 +106,7 @@ def event_mysql_remove_backup():
 
 def change_stock_template_definition():
     root_header = mysqlHeader('stock', 'stock2020', 'stock')
-    event = StockEventBase(root_header)
+    event = StockBase(root_header)
     stock_list = event.get_all_stock_list()
     col = [
         'close_price', 'highest_price', 'lowest_price',

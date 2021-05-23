@@ -40,44 +40,9 @@ class Neulogger(object):
 neulog = Neulogger(LOG_FILE).logger
 
 
-def info_log(msg: str):
-    neulog.info(msg)
-
-
-def error_log(msg: str):
-    neulog.error(msg)
-
-
-def log_with_return(func):
-    """
-    decorate function with return value.o
-    """
-    @wraps(func)
-    def wrapper(*args, **kv):
-        try:
-            result = func(*args, **kv)
-        except Exception as e:
-            # neulog.addHandler(Time_Handler)
-            neulog.error(f"<Module> {func.__name__} <Message> {e}")
-            # neulog.removeHandler(Time_Handler)
-            result = None
-        return result
-    return wrapper
-
-
-def log_wo_return(func):
-    """
-    decorate function without return value.
-    """
-    @wraps(func)
-    def wrapper(*args, **kv):
-        try:
-            func(*args, **kv)
-        except Exception as e:
-            # neulog.addHandler(Time_Handler)
-            neulog(f"<Module> {func.__name__} <Message> {e}")
-            # neulog.removeHandler(Time_Handler)
-        # return func
+def method(call):
+    def wrapper(*args, **kwargs):
+        return call(*args, **kwargs)
     return wrapper
 
 
@@ -111,12 +76,3 @@ class LogMonitor(object):
                     os.dup2(error_null.fileno(), 2)
                 neulog.info(f"{PROG_NAME} started with pid {os.getpid()}.")
             time.sleep(10)
-
-
-@Log
-def test(x):
-    raise Exception
-    print(x)
-
-if __name__=='__main__':
-    x = test(5)

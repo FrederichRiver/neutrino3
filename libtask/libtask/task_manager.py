@@ -1,17 +1,17 @@
 #!/usr/bin/python38
 # -*- coding: utf-8 -*-
 
-import os
-import datetime
 import importlib
 import json
+import os
+import pytz
 import re
 import time
-from dev_global.env import CONF_FILE
-import pytz
+from dev_global.path import CONF_FILE
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from libutils.log import Log
+from datetime import datetime, timedelta
+from libutils.log import Log, method
 from libutils.utils import read_json
 # modules loaded into module list
 import service_api.event
@@ -71,7 +71,7 @@ class taskManager(BackgroundScheduler):
     def __init__(self, task_config: taskConfig, taskfile='', task_manager_name=None, gconfig={}, **options):
         super(BackgroundScheduler, self).__init__(timezone='Asia/Shanghai', **options)
         self.task_manager_name = task_manager_name
-        self.start_time = datetime.datetime.now()
+        self.start_time = datetime.now()
         if os.path.exists(taskfile):
             self.taskfile = taskfile
             self.task_solver = taskSolver(taskfile)
@@ -82,7 +82,7 @@ class taskManager(BackgroundScheduler):
         self.config = task_config
 
     def __str__(self):
-        runtime = datetime.datetime.now() - self.start_time
+        runtime = datetime.now() - self.start_time
         h, m = timedelta_convert(runtime)
         return f"<Task manager ({self.task_manager_name}) has running for {h}:{str(m).zfill(2)}:00>"
 
@@ -92,6 +92,7 @@ class taskManager(BackgroundScheduler):
         """
         self._task_list = self.get_jobs()
 
+    @method
     @Log
     def check_task_list(self):
         """
@@ -106,6 +107,7 @@ class taskManager(BackgroundScheduler):
                     task.flag = self.config.FLAG.MOD
         return temp_task_list
 
+    @method
     @Log
     def task_manage(self, task_list):
         """
@@ -115,14 +117,15 @@ class taskManager(BackgroundScheduler):
             if task.flag == self.config.FLAG.NEW:
                 self.add_job(
                     task.func, trigger=task.trigger,
-                    id=task.name,
-                    timzone=pytz.timezone(self.config.timezone))
+                    id = task.name,
+                    timzone = pytz.timezone(self.config.timezone))
             elif task.flag == self.config.FLAG.MOD:
                 self.reschedule_job(
                     task.name, trigger=task.trigger,
                     timzone=pytz.timezone(self.config.timezone))
         return 1
 
+    @method
     @Log
     def load_task_list(self):
         with open(self.taskfile, 'r') as f:
@@ -163,6 +166,7 @@ class taskSolver(object):
         else:
             raise FileNotFoundError(taskfile)
 
+    @method
     @Log
     def load_event(self):
         """
@@ -174,6 +178,7 @@ class taskSolver(object):
                 self.func_list[func] = eval(f"{mod.__name__}.{func}")
         return 1
 
+    @method
     @Log
     def task_resolve(self, jsdata: dict):
         task = None
@@ -182,6 +187,7 @@ class taskSolver(object):
                 task = taskBase(task_name, func, trigger)
         return task
 
+    @method
     @Log
     def _trigger_resolve(self, jsdata):
         """
@@ -246,7 +252,7 @@ class taskSolver(object):
         return task_json
 
 
-def timedelta_convert(dt: datetime.timedelta) -> tuple:
+def timedelta_convert(dt: timedelta) -> tuple:
     """
     convert timedelta to hh:mm
     param  : dt  datetime.timedelta
@@ -257,7 +263,7 @@ def timedelta_convert(dt: datetime.timedelta) -> tuple:
     return (h, m)
 
 
-def format_timedelta(dt: datetime.timedelta) -> str:
+def format_timedelta(dt: timedelta) -> str:
     h, m = timedelta_convert(dt)
     return f"{h}:{str(m).zfill(2)}"
 

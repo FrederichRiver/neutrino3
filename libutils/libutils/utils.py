@@ -178,3 +178,8 @@ def str2number(in_str):
     else:
         result = None
     return result
+
+
+def f2percent(x: float):
+    print('%.2f%%' % (100 * x))
+    return x

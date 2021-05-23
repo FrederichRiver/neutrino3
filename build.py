@@ -6,7 +6,7 @@ PROJ_PATH = os.getenv('NEU_PATH')
 lib_list = [
     'dev_global','libutils', 'libmysql_utils',
     'libbasemodel', 'libspider', 'libnlp',
-    'libcontext', 'service_api', 'libstrategy']
+    'libcontext', 'service_api', 'libstrategy', 'libtask']
 for lib in lib_list:
     print(f"[Building {lib}]")
     # go into library directory

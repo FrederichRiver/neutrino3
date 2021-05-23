@@ -1,4 +1,4 @@
-__version__ = (1, 15, 60)
+__version__ = (1, 15, 61)
 __all__ = [
     'stock_model', 'stock_manager', 'shibor', 'form', 'cninfo', 'data_view', 'data_monitor']
 

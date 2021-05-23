@@ -3,7 +3,8 @@ import os
 import mplfinance as mpf
 import matplotlib.pyplot as plt
 from libbasemodel.stock_model import StockBase, StockData
-from libmysql_utils.mysql8 import GLOBAL_HEADER, mysqlHeader
+from libmysql_utils.mysql8 import mysqlHeader
+from libmysql_utils.header import GLOBAL_HEADER
 from pandas import DataFrame
 import pandas as pd
 from dev_global.env import TIME_FMT

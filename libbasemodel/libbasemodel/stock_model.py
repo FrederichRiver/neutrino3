@@ -83,24 +83,27 @@ class StockBase(mysqlBase):
 
     def get_all_stock_list(self) -> list:
         """
+        Query stock code from database.
         Return stock code --> list.
         """
         query_stock_code = self.session.query(formStockManager.stock_code).filter_by(flag='t').all()
         df = pd.DataFrame.from_dict(query_stock_code)
+        df.columns = ['stock_code']
         stock_list = df['stock_code'].tolist()
         # should test if stock list is null
         return stock_list
 
-    def get_all_index_list(self):
+    def get_all_index_list(self) -> list:
         """
         Return stock code --> list.
         """
         query_stock_code = self.session.query(formStockManager.stock_code).filter_by(flag='i').all()
         df = pd.DataFrame.from_dict(query_stock_code)
+        df.columns = ['stock_code']
         stock_list = df['stock_code'].tolist()
         return stock_list
 
-    def get_all_security_list(self):
+    def get_all_security_list(self) -> list:
         """
         Return stock code --> list
         """
@@ -108,11 +111,12 @@ class StockBase(mysqlBase):
         # Result : List type data.
         query_stock_code = self.session.query(formStockManager.stock_code).all()
         df = pd.DataFrame.from_dict(query_stock_code)
+        df.columns = ['stock_code']
         stock_list = df['stock_code'].tolist()
         return stock_list
 
     @staticmethod
-    def get_html_object(url: str, HttpHeader: dict):
+    def get_html_object(url: str, HttpHeader: dict) -> etree.HTML:
         """
         result is a etree.HTML object
         """
@@ -129,12 +133,16 @@ class StockBase(mysqlBase):
         return html
 
     @staticmethod
-    def get_excel_object(url: str) -> pd.DataFrame:
+    def get_excel_object(url: str) -> DataFrame:
         df = pd.read_excel(url)
         return df
 
     @staticmethod
-    def set_date_as_index(df):
+    def set_date_as_index(df: DataFrame) -> DataFrame:
+        """
+        Input must be DataFrame type and must have a column named 'date'.\n
+        This is a INPLACE operation.
+        """
         df['date'] = pd.to_datetime(df['date'], format=TIME_FMT)
         df.set_index('date', inplace=True)
         # exception 1, date index not exists.

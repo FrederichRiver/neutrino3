@@ -10,117 +10,18 @@ from pandas import DataFrame
 from pandas import isnull
 from libbasemodel.form import formStockManager
 import numpy as np
-import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
 from pandas.core.series import Series
 from libstrategy.utils.anzeichen import SignalBase, SignalPairTrade
+from libstrategy.utils.strategy_utils import StockPrice
+from libstrategy.utils.order import TradeMessage
+from libutils.utils import f2percent
 
 # from libstrategy.strategy_utils import StockPrice
 
 
 # 0. 数据准备 load from strategy_utils
-
-
-class StockPrice(mysqlBase):
-    """
-    A smart application to get close price.
-    : stock_code : benchmark code
-    : header : header
-    : return: result like DataFrame
-    """
-    def get_stock_list(self):
-        query_stock_code = self.session.query(formStockManager.stock_code).filter_by(flag='t').all()
-        df = DataFrame.from_dict(query_stock_code)
-        stock_list = df['stock_code'].tolist()
-        # should test if stock list is null
-        return stock_list
-
-    def get_log_price(self, stock_code: str, start='', end='') -> DataFrame:
-        query_column = 'trade_date,close_price'
-        def_column = ['trade_date', f"{stock_code}"]
-        if start or end:
-            result = self.condition_select(stock_code, query_column, f"(trade_date>'{start}') and (trade_date<'{end}')")
-        else:
-            result = self.select_values(stock_code, query_column)
-        if not result.empty:
-            result.columns = def_column
-            result[stock_code].apply(np.log)
-            result['trade_date'] = pandas.to_datetime(result['trade_date'])
-            result.set_index('trade_date', inplace=True)
-        else:
-            result = DataFrame()
-        return result
-
-    def get_data(self, stock_code: str, query_type='close', start='', end='') -> DataFrame:
-        if query_type == 'close':
-            query_column = 'trade_date,close_price'
-            def_column = ['trade_date', f"{stock_code}"]
-        elif query_type == 'full':
-            query_column = 'trade_date,open_price,close_price,high_price,low_price'
-            def_column = ['trade_date', 'open', 'close', 'high', 'low']
-        else:
-            query_column = 'trade_date,open_price,close_price,high_price,low_price'
-            def_column = ['trade_date', 'open', 'close', 'high', 'low']
-        if start or end:
-            result = self.condition_select(stock_code, query_column, f"(trade_date>'{start}') and (trade_date<'{end}')")
-        else:
-            result = self.select_values(stock_code, query_column)
-        if not result.empty:
-            result.columns = def_column
-            result['trade_date'] = pandas.to_datetime(result['trade_date'])
-            result.set_index('trade_date', inplace=True)
-        else:
-            result = DataFrame()
-        return result
-
-    def get_benchmark(self, stock_code: str) -> DataFrame:
-        return self.get_data(stock_code, query_type='close')
-
-    @classmethod
-    def profit_matrix(cls, stock_code: str, df: DataFrame) -> DataFrame:
-        df[stock_code] = df[stock_code] / df[stock_code].shift(1)
-        return df
-
 # 1. 寻找相关性
-
-
-def relative_matrix():
-    event = StockPrice(LOCAL_HEADER)
-    stock_list = [f"SH000{str(i).zfill(3)}" for i in range(1, 29)]
-    df_matrix = DataFrame()
-    for stock in stock_list:
-        df = event.get_data(stock)
-        if not df.empty:
-            event.profit_matrix(stock, df)
-            df_matrix = pandas.concat([df_matrix, df], axis=1)
-    df_matrix.dropna(how='any', axis=0, inplace=True)
-    print(df_matrix.corr().to_markdown())
-
-
-def test_relativity():
-    event = StockPrice(LOCAL_HEADER)
-    stock_list = event.get_stock_list()
-    bm = event.get_data('SZ002460', query_type='close', start='2019-01-01', end='2020-01-01')
-    event.profit_matrix('SZ002460', bm)
-    # result = DataFrame(columns=['stock_code', 'r'])
-    # stock_list = ['SZ002460']
-    for stock in stock_list:
-        df = event.get_data(stock, query_type='close', start='2019-01-01', end='2020-01-01')
-        if not df.empty:
-            event.profit_matrix(stock, df)
-            df_matrix = pandas.concat([bm, df], axis=1)
-            df_matrix.dropna(how='any', axis=0, inplace=True)
-            r = df_matrix.corr().iloc[0, 1]
-            if not isnull(r):
-                """new = DataFrame({'stock_code': [stock], 'r': [r]}, columns=['stock_code', 'r'])
-                result = result.append(new, ignore_index=True)"""
-                # with open('/home/friederich/Dev/neutrino2/data/relative', 'a') as f:
-                #    f.write(f"{stock}: %.3f\n" % r)
-                if r > 0.6:
-                    with open('/home/friederich/Dev/neutrino2/data/relative2', 'a') as f:
-                        f.write(f"{stock}: %.3f\n" % r)
-
-
 # 2. 判定协整关系
 # 基于ENGLE-GRANGER两步法
 # ADF假设检验方法
@@ -198,17 +99,6 @@ def param_adjust():
 # 5. 创建交易费率
 
 
-class TradeMessage(object):
-    def __init__(self, stock_code: str, trade_time, price: float, bid: int) -> None:
-        self.code = stock_code
-        self.trade_time = trade_time
-        self.price = price
-        self.bid = bid
-
-    def __str__(self) -> str:
-        direction = "Buy" if self.bid > 0 else "Sell"
-        text = f"{direction} {self.bid} {self.code} at price of {self.price}.\n"
-        return text
 # 6. 创建资产组合价值跟踪
 # 7. 回测评估
 
@@ -251,15 +141,17 @@ class PairTrade(StrategyBase):
         df_matrix.dropna(how='any', axis=0, inplace=True)
         return df_matrix.corr().iloc[0, 1]
 
-    @classmethod
-    def cointegration_check(cls, df_a: Series, df_b: Series):
+    @staticmethod
+    def cointegration_check(df_a: Series, df_b: Series):
         """
         对两个资产进行协整检验
         """
+        import statsmodels.api as sm
         x_add = sm.add_constant(df_b)
         model = sm.OLS(df_a, x_add).fit()
-        # epsilong = y - beta * x - alpha
+        # epsilon = y - beta * x - alpha
         e = df_a - model.params[1] * df_b - model.params[0]
+        print(e)
         ADF = adfuller(e)
         if ADF[0] < ADF[4].get('1%'):
             result = 0.99
@@ -308,12 +200,6 @@ class PairTrade(StrategyBase):
     def _short_trade(self, stock: str, price: float, bid: int):
         return TradeMessage(stock, 'null', price, bid)
 
-    def summary(self):
-        profit = 0.0
-        for m in self.trade_list:
-            profit += m.price * m.bid
-        print(round(profit, 2))
-
 
 class BackTest(object):
     def __init__(self, strategy: StrategyBase) -> None:
@@ -321,27 +207,26 @@ class BackTest(object):
         self.trade = []
         self.strategy = strategy
         self.annualized_return = 0.0
-        self.ret = 0.0
+        self.total_return = 0.0
         self.max_draw = 0.0
-        self.period = datetime.strptime(self.strategy.to_date, '%Y-%m-%d') - datetime.strptime(self.strategy.from_date, '%Y-%m-%d')
+        self.period = self._time_delta()
 
     def get_trade_data(self, trade: list):
         self.trade = trade
 
-    def time_delta(self) -> timedelta:
-        self.period = self.strategy.to_date - self.strategy.from_date
+    def _time_delta(self) -> timedelta:
+        self.period = datetime.strptime(self.strategy.to_date, '%Y-%m-%d') - datetime.strptime(self.strategy.from_date, '%Y-%m-%d')
         return self.period
 
     def annual_return(self):
-        self.annualized_return = self.ret * 365 / self.period.days
-        print(self.annualized_return)
+        self.annualized_return = self.total_return * 365 / self.period.days
+        f2percent(self.annualized_return)
 
     def report(self):
         profit = 0.0
         for m in self.trade:
             profit += m.price * m.bid
-        print(round(profit, 2))
-        self.ret = profit / 970
+        self.total_return = profit / 970
         self.annual_return()
 
 

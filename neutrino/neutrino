@@ -1,11 +1,12 @@
-#!/usr/bin/python38
+#!/usr/bin/python3
 import os
 import signal
 import sys
 import time
 from dev_global.env import PROG_NAME
 from dev_global.path import LOG_FILE, PID_FILE, TASK_FILE, MANUAL
-from libmysql_utils.mysql8 import mysqlBase, TASK_HEADER
+from libmysql_utils.mysql8 import mysqlBase, mysqlHeader
+# from libmysql_utils.header import TASK_HEADER
 from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from libtask.task_manager import taskManager, taskConfig
@@ -16,6 +17,9 @@ from libbasemodel.database_manager import event_initial_database
 
 
 __version__ = '1.7.15'
+
+
+TASK_HEADER = mysqlHeader(acc='task', pw='task2020', db='task')
 
 
 def logfile_monitor(log_file):

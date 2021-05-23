@@ -12,6 +12,7 @@ __all__ = [
     'service_download_index_data',
     'service_stock_data_plot',
     'service_shibor_data_plot',
+    'service_treasury_yield_data_plot',
     'service_get_shibor_data',
     'service_record_company_infomation',
     'service_record_company_stock_structure',
@@ -99,6 +100,15 @@ def service_shibor_data_plot():
     event.plot()
 
 
+def service_treasury_yield_data_plot():
+    from libbasemodel.data_view import TreasuryYieldView
+    from libutils.utils import read_json
+    from dev_global.path import CONF_FILE
+    _, image_path = read_json("image_path", CONF_FILE)
+    event = TreasuryYieldView(GLOBAL_HEADER, image_path)
+    event.plot()
+
+
 def service_get_shibor_data():
     from libbasemodel.shibor import ShiborData
     event = ShiborData(GLOBAL_HEADER)
@@ -176,11 +186,11 @@ def service_update_treasury_yield():
     Treasury yield data of China & US from eastmoney.com
     """
     from libmysql_utils.mysql8 import mysqlHeader, mysqlBase
-    from libbasemodel.spider_model import tarantula
+    from libbasemodel.spider_model import TreasuryYield
     head = mysqlHeader(acc="stock", pw="stock2020", host="115.159.1.221", db="stock")
     mysql = mysqlBase(head)
     url = "http://datacenter.eastmoney.com/api/data/get?callback=datatable1509410&type=RPTA_WEB_TREASURYYIELD&sty=ALL&st=SOLAR_DATE&sr=-1&token=894050c76af8597a853f5b408b759f5d&p={}&ps=50&_=1615912300344" 
-    event = tarantula()
+    event = TreasuryYield()
     result = event.get_text(url.format(1))
     data = event.resolve_data(result)
     for dataline in data:

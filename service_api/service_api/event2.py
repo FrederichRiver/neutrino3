@@ -1,27 +1,6 @@
 #!/usr/bin/python38
-from libbasemodel.spider_model import tarantula
+# from libbasemodel.spider_model import tarantula
 from libbasemodel.shibor import ShiborData
-
-
-def event_record_total_treasury_yield():
-    """
-    Treasury yield data of China & US from eastmoney.com
-    """
-    from libmysql_utils.mysql8 import mysqlHeader, mysqlBase
-    head = mysqlHeader(acc="stock", pw="stock2020", host="115.159.1.221", db="stock")
-    mysql = mysqlBase(head)
-    url = "http://datacenter.eastmoney.com/api/data/get?callback=datatable1509410&type=RPTA_WEB_TREASURYYIELD&sty=ALL&st=SOLAR_DATE&sr=-1&token=894050c76af8597a853f5b408b759f5d&p={}&ps=50&_=1615912300344" 
-    event = tarantula()
-    result = event.get_text(url.format(1))
-    p = event.get_total_page(result)
-    for i in range(p+1):
-        result = event.get_text(url.format(i))
-        data = event.resolve_data(result)
-        for dataline in data:
-            sql = event.insert_table1(dataline)
-            sql2 = event.insert_table2(dataline)
-            mysql.engine.execute(sql)
-            mysql.engine.execute(sql2)
 
 
 def event_init_shibor():

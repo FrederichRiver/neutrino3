@@ -1,7 +1,7 @@
 #!/usr/bin/python38
 
 
-from libstrategy.pair_trading import TradeMessage
+from libstrategy.utils.order import TradeMessage
 
 
 class FeeBase(object):

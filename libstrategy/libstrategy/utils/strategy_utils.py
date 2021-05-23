@@ -4,7 +4,7 @@ from libbasemodel.form import formStockManager
 import pandas
 from pandas import DataFrame
 import numpy as np
-from libstrategy.pair_trading import TradeMessage
+from libstrategy.utils.order import TradeMessage
 
 
 class StockPrice(mysqlBase):
@@ -48,7 +48,7 @@ class StockPrice(mysqlBase):
             query_column = 'trade_date,open_price,close_price,high_price,low_price'
             def_column = ['trade_date', 'open', 'close', 'high', 'low']
         if start or end:
-            result = self.condition_select(stock_code, query_column, f"(trade_date>'{start}') and (trade_date<'{end}')")
+            result = self.condition_select(stock_code, query_column, f"(trade_date>'{start}' and trade_date<'{end}')")
         else:
             result = self.select_values(stock_code, query_column)
         if not result.empty:

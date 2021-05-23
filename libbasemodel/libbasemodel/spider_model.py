@@ -52,7 +52,7 @@ class EMSpider(SpiderBase):
         return result
 
 
-class tarantula(EMSpider):
+class TreasuryYield(EMSpider):
     """
     Spider for treasury yield data from www.eastmoney.com
     """

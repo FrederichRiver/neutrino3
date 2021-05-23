@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 from dev_global.env import GITHUB_URL, EMAIL
 
-v = (2, 25, 81)
+v = (2, 25, 83)
 
 setup(
         name='libbasemodel',
