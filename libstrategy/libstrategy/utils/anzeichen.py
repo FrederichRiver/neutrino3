@@ -1,7 +1,7 @@
 #!/usr/bin/python38
+import abc
 
-
-class SignalBase(object):
+class SignalBase(abc):
     def __init__(self) -> None:
         """
         0 means start
@@ -17,8 +17,13 @@ class SignalBase(object):
     def set_threshold(self, **param):
         raise NotImplementedError
 
-
 class SignalPairTrade(SignalBase):
+    """
+    start: signal = 0
+    long A short B: signal = 1
+    long B short A: signal = 2
+    end: signal = -1
+    """
     def __init__(self) -> None:
         super().__init__()
         self._state = 0
@@ -37,7 +42,7 @@ class SignalPairTrade(SignalBase):
         self._value = -1
         return self._value
 
-    def get_data(self, a: float, b: float) -> None:
+    def __call__(self, a: float, b: float) -> None:
         d = a - self.beta * b - self.alpha
         if (d > self._high) and (self._state != 1):
             self._value = 1

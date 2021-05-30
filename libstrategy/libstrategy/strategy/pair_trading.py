@@ -1,10 +1,11 @@
-#!/usr/bin/python38
+#!/usr/bin/python3
 """
 Pair Trading Method
 """
+import abc
 from datetime import datetime, timedelta, date
 from libmysql_utils.header import LOCAL_HEADER
-from libmysql_utils.mysql8 import mysqlBase, mysqlHeader
+from libmysql_utils.mysql8 import mysqlBase, mysqlHeader, mysqlQuery
 import pandas
 from pandas import DataFrame
 from pandas import isnull
@@ -13,8 +14,8 @@ import numpy as np
 from statsmodels.tsa.stattools import adfuller
 from pandas.core.series import Series
 from libstrategy.utils.anzeichen import SignalBase, SignalPairTrade
-from libstrategy.utils.strategy_utils import StockPrice
-from libstrategy.utils.order import TradeMessage
+from libstrategy.utils.order import TradeSignal
+from libstrategy.data_engine import DataEngine
 from libutils.utils import f2percent
 
 # from libstrategy.strategy_utils import StockPrice
@@ -27,7 +28,7 @@ from libutils.utils import f2percent
 # ADF假设检验方法
 def cointegration():
     # import matplotlib.pyplot as plt
-    event = StockPrice(LOCAL_HEADER)
+    event = DataEngine(LOCAL_HEADER)
     bm = event.get_log_price('SH600000', start='2019-01-01', end='2019-04-01')
     # event.profit_matrix('SZ002460', bm)
     df = event.get_log_price('SH601988', start='2019-01-01', end='2019-04-01')
@@ -88,12 +89,6 @@ def cointegration():
     print(a)
 
 # 3. 参数调整
-
-
-def param_adjust():
-    param = [0.001 * x for x in range(-50, 75)]
-    print(param[:3])
-
 # 4. 创建标的库
 
 # 5. 创建交易费率
@@ -102,10 +97,11 @@ def param_adjust():
 # 6. 创建资产组合价值跟踪
 # 7. 回测评估
 
-class StrategyBase(object):
+class StrategyBase(abc):
     def __init__(self, from_date, to_date ) -> None:
         self.from_date = from_date
         self.to_date = to_date
+
 
 class PairTrade(StrategyBase):
     """
@@ -120,9 +116,6 @@ class PairTrade(StrategyBase):
         self.quant_2 = 0
         self.trade_list = []
 
-    def set_ratio(self, value):
-        self._ratio = value
-
     def add_trade(self, trade_msg: list):
         self.trade_list.extend(trade_msg)
 
@@ -132,8 +125,8 @@ class PairTrade(StrategyBase):
             text += m.__str__()
         return text
 
-    @classmethod
-    def capital_relativity(cls, df_a: Series, df_b: Series):
+    @staticmethod
+    def capital_relativity(df_a: Series, df_b: Series):
         """
         输入股票代码，返回一个列表，包括相关的资产，以及相关系数
         """
@@ -151,7 +144,6 @@ class PairTrade(StrategyBase):
         model = sm.OLS(df_a, x_add).fit()
         # epsilon = y - beta * x - alpha
         e = df_a - model.params[1] * df_b - model.params[0]
-        print(e)
         ADF = adfuller(e)
         if ADF[0] < ADF[4].get('1%'):
             result = 0.99
@@ -175,10 +167,7 @@ class PairTrade(StrategyBase):
             self.add_trade(
                 self.pair_trade_2(self.stock_1, price_a, self.stock_2, price_b)
                 )
-        elif signal.signal == -1:
-            pass
-        else:
-            pass
+
 
     def pair_trade_1(self, stock_1: str, a: float, stock_2: str, b: float):
         bid_1 = 100
@@ -195,10 +184,10 @@ class PairTrade(StrategyBase):
         return [msg_1, msg_2]
 
     def _long_trade(self, stock: str, price: float, bid: int):
-        return TradeMessage(stock, 'null', price, bid)
+        return TradeSignal(stock, 'null', price, bid)
 
     def _short_trade(self, stock: str, price: float, bid: int):
-        return TradeMessage(stock, 'null', price, bid)
+        return TradeSignal(stock, 'null', price, bid)
 
 
 class BackTest(object):
@@ -206,6 +195,7 @@ class BackTest(object):
         super().__init__()
         self.trade = []
         self.strategy = strategy
+        self.init_cash = 0.0
         self.annualized_return = 0.0
         self.total_return = 0.0
         self.max_draw = 0.0
@@ -218,61 +208,18 @@ class BackTest(object):
         self.period = datetime.strptime(self.strategy.to_date, '%Y-%m-%d') - datetime.strptime(self.strategy.from_date, '%Y-%m-%d')
         return self.period
 
-    def annual_return(self):
-        self.annualized_return = self.total_return * 365 / self.period.days
-        f2percent(self.annualized_return)
+    def print_annual_return(self):
+        # self.annualized_return = self.total_return * 250 / self.period.days
+        self.annualized_return = (1 + self.total_return) ** (250 / self.period.days) -1 
+        f = f2percent(self.annualized_return)
+        print(f"Annualized Return: {f}")
 
     def report(self):
         profit = 0.0
         for m in self.trade:
             profit += m.price * m.bid
-        self.total_return = profit / 970
-        self.annual_return()
-
-
-class MarketBase(object):
-    def __init__(self) -> None:
-        super().__init__()
-        self.pool = []
-        self.data = DataFrame()
-
-    def Config(self, **args):
-        raise NotImplementedError
-
-    def _check_capital(self, stock_code: str):
-        """
-        Checking capital data from database.
-        """
-        return None
-
-    def add_capital(self, stock_code: str):
-        self.pool.append(stock_code)
-
-
-class StockMarket(MarketBase):
-    def __init__(self, from_date, to_data) -> None:
-        self.from_date = from_date
-        self.to_date = to_data
-        super().__init__()
-
-    def __str__(self) -> str:
-        text = f"From {self.from_date} to {self.to_date}"
-        return text
-
-    def init_data(self, head: mysqlHeader):
-        price_engine = StockPrice(head)
-        if self.pool:
-            for stock in self.pool:
-                df = price_engine.get_data(stock_code=stock, start=self.from_date, end=self.to_date)
-                self.data = pandas.concat([self.data, df], axis=1)
-            self.data.dropna(axis=0, how='any', inplace=True)
-
-    def print_stock_list(self):
-        for stock in self.pool:
-            print(stock)
-
-    def __iter__(self):
-        return self.data.iterrows()
+        self.total_return = profit / self.init_cash
+        self.print_annual_return()
 
 
 class InvestmentGroup(object):
@@ -286,18 +233,20 @@ class InvestmentGroup(object):
 
 def backtest2():
     head = mysqlHeader(acc='stock', pw='stock2020', db='stock', host='115.159.1.221')
-    stock_market = StockMarket('2019-01-01', '2021-03-01')
+    start = '2020-01-01'
+    end = '2021-05-28'
+    stock_market = DataEngine(head , start, end)
     print(stock_market)
-    A = 'SH600000'
-    B = 'SH601988'
-    stock_market.add_capital(A)
-    stock_market.add_capital(B)
-    stock_market.print_stock_list()
-    stock_market.init_data(head)
+    # A = 'SH600000'
+    # B = 'SH601988'
+    A = 'SZ002460'
+    B = 'SZ002497'
+    stock_market.add_asset(A)
+    stock_market.add_asset(B)
+    stock_market.update()
     Trade = PairTrade(A, B, '2019-01-01', '2021-03-01')
     result, beta, mean, std = Trade.cointegration_check(stock_market.data[A], stock_market.data[B])
     print(mean, std)
-    Trade.set_ratio(beta)
     Signal = SignalPairTrade()
     Signal.set_threshold(high=std, low=-std, beta=beta, alpha=mean)
     print(Signal.signal)

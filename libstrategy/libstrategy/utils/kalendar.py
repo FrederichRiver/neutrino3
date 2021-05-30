@@ -1,5 +1,5 @@
+import pandas as pd
 from datetime import date, datetime, timedelta
-import pandas
 
 
 class Kalendar(object):
@@ -41,7 +41,7 @@ class Kalendar(object):
 
     @classmethod
     def eq(cls, a: date, o: object) -> bool:
-        if isinstance(o, pandas._libs.tslibs.timestamps.Timestamp):
+        if isinstance(o, pd._libs.tslibs.timestamps.Timestamp):
             if (a.year, a.month, a.day) == (o.year, o.month, o.day):
                 result = True
             else:
@@ -73,3 +73,5 @@ class Kalendar(object):
         如果是交易日，就返回True，否则返回False。这个API引用了is_holiday和is_weekend
         """
         return False if self.is_holiday(d) or self.is_weekend(d) else True
+
+

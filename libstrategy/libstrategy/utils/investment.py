@@ -6,8 +6,8 @@ import pandas as pd
 import numpy as np
 import copy
 import pathlib
-from .order import Order
-from .capital import CapitalBase
+from .order import TradeOrder
+from .asset import StockAsset
 
 
 """
@@ -29,53 +29,47 @@ a typical example is :{
 
 
 class Investment(object):
-    """Investment is a group of target together with cash. It contains some method.\n
+    """Investment is a group of target together with cash. \n
     """
 
     def __init__(self, cash=0, investment_dict={}, today_account_value=0):
         # NOTE: The investment dict must be copied!!!
         # Otherwise the initial value
-        self.init_cash = cash
+        self.INITIAL_VALUE = cash
+        self.__cash = cash
         self.investment = investment_dict.copy()
-        self.investment.cash = cash
-        self.investment.today_account_value = today_account_value
+        # self.investment.today_account_value = today_account_value
 
-    def init_stock(self, stock_id: str, amount: float, price=None):
-        self.investment[stock_id] = CapitalBase(stock_id, currency=0)
-        self.investment[stock_id].count = 0  # update count in the end of this date
-        self.investment[stock_id].amount = amount
-        self.investment[stock_id].price = price
-        self.investment[stock_id].weight = 0  # update the weight in the end of the trade date
+    def init_stock(self, stock_list: list):
+        for stock_id in stock_list:
+            self.add_stock(stock_id)
 
-    def buy_stock(self, stock_id: str, trade_val: float, cost: float, trade_price):
-        trade_amount = trade_val / trade_price
+    def add_stock(self, stock_id: str):
+        self.investment[stock_id] = StockAsset(stock_id, cash=0)
+
+    def __str__(self) -> str:
+        text = ''
+        for asset_id, asset in self.investment.items():
+            text += f"{asset.__str__()}\n"
+        return f"Investment:\n{text}."
+
+    def buy_stock(self, stock_id: str, trade_volume: int, trade_price: float):
+        # Need to check cash
         if stock_id not in self.investment.keys():
-            self.init_stock(stock_id=stock_id, amount=trade_amount, price=trade_price)
+            self.add_stock(stock_id)
+        signal = self.investment[stock_id].buy(**{"volume": trade_volume, "price": trade_price})        
+        return signal
+
+    def sell_stock(self, stock_id: str, trade_volume: int, trade_price: float):
+        if stock_id in self.investment.keys():
+            signal = self.investment[stock_id].buy(**{"volume": trade_volume, "price": trade_price}) 
         else:
-            # exist, add amount
-            self.investment[stock_id].amount += trade_amount
+            signal = TradeOrder(stock_id, 'null', 1, 0, 0, 0)
+        return signal
 
-        self.investment.cash -= trade_val + cost
-
-    def sell_stock(self, stock_id, trade_val, cost, trade_price):
-        trade_amount = trade_val / trade_price
-        if stock_id not in self.investment:
-            raise KeyError("{} not in current investment".format(stock_id))
-        else:
-            # decrease the amount of stock
-            self.investment[stock_id].amount -= trade_amount
-            # check if to delete
-            if self.investment[stock_id].amount < -1e-5:
-                raise ValueError(
-                    "only have {} {}, require {}".format(self.investment[stock_id].amount, stock_id, trade_amount)
-                )
-            elif abs(self.investment[stock_id].amount) <= 1e-5:
-                self.del_stock(stock_id)
-
-        self.investment.cash += trade_val - cost
-
-    def del_stock(self, stock_id):
-        del self.investment[stock_id]
+    def del_stock(self, stock_id: str):
+        if stock_id in self.investment.keys():
+            del self.investment[stock_id]
 
     def update_order(self, order, trade_val, cost, trade_price):
         # handle order, order is a order class, defined in exchange.py
@@ -97,39 +91,37 @@ class Investment(object):
     def update_stock_weight(self, stock_id, weight):
         self.investment[stock_id].weight = weight
 
-    def update_cash(self, cash):
-        self.investment.cash = cash
+    @property
+    def cash(self):
+        return self.__cash
 
-    def calculate_stock_value(self):
-        stock_list = self.get_stock_list()
-        value = 0
-        for stock_id in stock_list:
-            value += self.investment[stock_id].amount * self.investment[stock_id].price
+    def add_cash(self, cash: float) -> float:
+        self.__cash += cash
+        return self.__cash
+
+    @property
+    def value(self) -> float:
+        value = self.__cash
+        for _, asset in self.investment.items():
+            value += asset.value
         return value
 
-    def calculate_value(self) -> float:
-        value = self.calculate_stock_value()
-        value += self.investment.cash
-        return value
+    @property
+    def asset_list(self) -> list:
+        return list(set(self.investment.keys()))
 
-    def get_stock_list(self) -> list:
-        stock_list = list(set(self.investment.keys()))
-        return stock_list
 
     def get_stock_price(self, code):
         return self.investment[code].price
 
-    def get_stock_amount(self, code):
-        return self.investment[code].amount
+    def get_stock_volume(self, code):
+        return self.investment[code].volume
 
     def get_stock_count(self, code):
         return self.investment[code].count
 
     def get_stock_weight(self, code):
         return self.investment[code].weight
-
-    def get_cash(self):
-        return self.investment.cash
 
     def get_stock_amount_dict(self) -> dict:
         """generate stock amount dict {stock_id : amount of stock} """

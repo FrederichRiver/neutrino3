@@ -7,7 +7,7 @@ Auther: Friederich River
 import json
 import datetime
 from typing import Tuple
-from libutils.log import Log
+from libutils.log import Log, method
 import pandas as pd
 from dev_global.env import TIME_FMT
 from dev_global.path import CONF_FILE
@@ -20,6 +20,8 @@ from sqlalchemy.orm import sessionmaker
 __version__ = '4.4.20'
 
 __all__ = ['mysqlBase', 'mysqlHeader', 'GLOBAL_HEADER']
+
+
 
 
 class mysqlBase(object):
@@ -153,10 +155,53 @@ class mysqlBase(object):
         self.engine.execute(sql)
         return 1
 
+    @method
     @Log
     def exec(self, SQL: str):
         self.engine.execute(SQL)
         return 1
+
+
+class mysqlTest(mysqlBase):
+    @property
+    def version(self):
+        """
+        Use for testing. Return mysql version in str format. 
+        """
+        version = self.engine.execute("SELECT VERSION()").fetchone()
+        return version[0]
+
+
+class mysqlQuery(mysqlBase):
+    def __str__(self):
+        return f"mysql query engine <{self.account}@{self.host}>"
+
+    def select_one(self, table, field, condition) -> Tuple:
+        """
+        Result is a tuple like structure data.
+        """
+        sql = f"SELECT {field} FROM {table} WHERE {condition}"
+        result = self.engine.execute(sql).fetchone()
+        return result
+
+    def select_values(self, table, field) -> DataFrame:
+        """
+        Return a DataFrame type result.
+        """
+        sql = f"SELECT {field} from {table}"
+        select_value = self.engine.execute(sql)
+        df = pd.DataFrame(select_value)
+        return df
+
+    def condition_select(self, table, field, condition) -> DataFrame:
+        """
+        Return a DataFrame type result.
+        """
+        sql = f"SELECT {field} from {table} WHERE {condition}"
+        select_value = self.engine.execute(sql)
+        df = pd.DataFrame(select_value)
+        return df
+
 
 def _drop_all(base, engine):
     """

@@ -129,4 +129,7 @@ dmypy.json
 .pyre/
 
 # User defined
+config/
 data/
+.vscode/settings.json
+.gitignore

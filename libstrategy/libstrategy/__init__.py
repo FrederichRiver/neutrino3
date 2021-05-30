@@ -1,4 +1,4 @@
-__version__ = '1.8.23'
+__version__ = '1.12.29'
 __all__ = [
     'finance_base', 'finance_event', 'data_view',
     'finance_balance', 'balance_analysis', ]
@@ -7,5 +7,4 @@ __all__ = [
 # v1.3.6: Optimize event_plot in finance_event.
 # v1.4.10: Combine with lib leo.
 # v1.4.11: profit growth stratagy.
-
 

@@ -83,3 +83,6 @@ def event_cointegration_check():
                     g.write(f'{code1},{code2},ERROR!\n')
 
 event_cointegration_check()
+
+# SZ002460 with SZ002497
+# SZ002460 with SH603799

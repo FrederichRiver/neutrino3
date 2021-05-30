@@ -180,6 +180,6 @@ def str2number(in_str):
     return result
 
 
-def f2percent(x: float):
-    print('%.2f%%' % (100 * x))
-    return x
+def f2percent(x: float) -> str:
+    f = '%.2f%%' % (100 * x)
+    return f

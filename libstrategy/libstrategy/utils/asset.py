@@ -1,7 +1,5 @@
-#!/usr/bin/python38
-
-
-from libstrategy.utils.order import TradeMessage
+#!/usr/bin/python3
+from .order import TradeOrder
 
 
 class FeeBase(object):
@@ -35,13 +33,13 @@ class StampTax(FeeBase):
         return abs(round(vol * self.ratio, 2))
 
 
-class CapitalBase(object):
-    def __init__(self, stock_code: str, currency=0.0) -> None:
+class AssetBase(object):
+    def __init__(self, stock_code: str, cash=0.0) -> None:
         self.stock_code = stock_code
         self.unit = 'CNY'
         self.price = 0.0
         self.volume = 0.0
-        self.currency = currency
+        self.cash = cash
         self.TAX = StampTax()
         self.Fee = TransferFee()
         self.Comm = StockCommission()
@@ -49,15 +47,19 @@ class CapitalBase(object):
         self.weight = 0.0
 
     def buy(self, **args):
+        """
+        keys: volume, price
+        """
         self.volume += args.get('volume')
         vol = args.get('price') * args.get('volume')
         # Any fee
         fee = self.Fee(vol)
         commission = self.Comm(vol)
         # settle
-        self.currency -= round(vol, 2)
-        self.currency -= (fee + commission)
-        return TradeMessage(self.stock_code, 'null', args.get('price'), args.get('volume'))
+        self.cash -= round(vol, 2)
+        self.cash -= (fee + commission)
+        self.price = args.get('price')
+        return TradeOrder(self.stock_code, 'null', 1, args.get('price'), args.get('volume'))
 
     def sell(self, **args):
         self.volume += args.get('volume')
@@ -67,17 +69,27 @@ class CapitalBase(object):
         fee = self.Fee(vol)
         commission = self.Comm(vol)
         # settle
-        self.currency -= round(vol, 2)
-        self.currency -= (tax + fee + commission)
-        return TradeMessage(self.stock_code, 'null', args.get('price'), args.get('volume'))
+        self.cash -= round(vol, 2)
+        self.cash -= (tax + fee + commission)
+        self.price = args.get('price')
+        return TradeOrder(self.stock_code, 'null', -1, args.get('price'), args.get('volume'))
 
     def settle(self, price: float):
-        self.currency -= price * self.volume
-        return TradeMessage(self.stock_code, 'null', price, self.volume)
+        self.cash += price * self.volume
+        self.volume = 0
+        return TradeOrder(self.stock_code, 'null', -1, price, self.volume)
+
+    @property
+    def value(self):
+        return self.volume * self.price + self.cash
 
     def __str__(self):
-        text = f"Capital {self.stock_code}, volume {self.volume}, currency {self.currency}"
+        text = f"Asset {self.stock_code}, volume {self.volume}, currency {'%.2f' % self.cash}"
         return text
+
+
+class StockAsset(AssetBase):
+    pass
 
 
 class InvestGroup(object):
@@ -87,7 +99,7 @@ class InvestGroup(object):
     
 
 if __name__ == '__main__':
-    capital = CapitalBase('SH600000', 5000.0)
+    capital = AssetBase('SH600000', 5000.0)
     print(capital)
     trade_set = [
         {'price': 6.02, 'volume': 100},
