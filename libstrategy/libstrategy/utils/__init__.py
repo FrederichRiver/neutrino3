@@ -1,5 +1,3 @@
-from .asset import AssetBase
-from .order import Order, TradeSignal
-from .report import Report
-
-
+def f2percent(x: float) -> str:
+    f = '%.2f%%' % (100 * x)
+    return f

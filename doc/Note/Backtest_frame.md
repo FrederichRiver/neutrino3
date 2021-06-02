@@ -28,15 +28,20 @@ flowchart TB
 ```mermaid
 flowchart LR
     D(Data Engine)
-    S1(Strategy 1)
-    S2(Strategy 2)
-    Trader(John)
-    D<-->|Capital|S1
-    D<-->|Capital|S2
-    S1-->Trader
-    S2-->Trader
-    E(Event Engine)
-    E-->S1
-    E-->S2
-    D-->E
+    T(Trader)
+    Sig(Signal)
+    I(Investment)
+    A1(Asset1)
+    A2(Asset2)
+    R(Report)
+    D-->|data|T
+    D-->|data|Sig
+    Sig-->|signal|T
+    T-->|data|I
+    I-->|data|A1
+    I-->|data|A2
+    A2-->|order|I
+    A1-->|order|I
+    I-->|order|T
+    T-->|order|R
 ```

@@ -59,7 +59,7 @@ class AssetBase(object):
         self.cash -= round(vol, 2)
         self.cash -= (fee + commission)
         self.price = args.get('price')
-        return TradeOrder(self.stock_code, 'null', 1, args.get('price'), args.get('volume'))
+        return TradeOrder(self.stock_code, 'null', 1, args.get('price'), args.get('volume'), 1.0)
 
     def sell(self, **args):
         self.volume += args.get('volume')
@@ -72,12 +72,13 @@ class AssetBase(object):
         self.cash -= round(vol, 2)
         self.cash -= (tax + fee + commission)
         self.price = args.get('price')
-        return TradeOrder(self.stock_code, 'null', -1, args.get('price'), args.get('volume'))
+        return TradeOrder(self.stock_code, 'null', -1, args.get('price'), args.get('volume'), 1.0)
 
     def settle(self, price: float):
+        volume = self.volume
         self.cash += price * self.volume
         self.volume = 0
-        return TradeOrder(self.stock_code, 'null', -1, price, self.volume)
+        return TradeOrder(self.stock_code, 'null', -1, price, volume, 1.0)
 
     @property
     def value(self):

@@ -1,4 +1,4 @@
-__version__ = '1.12.29'
+__version__ = '1.13.30'
 __all__ = [
     'finance_base', 'finance_event', 'data_view',
     'finance_balance', 'balance_analysis', ]

@@ -57,15 +57,15 @@ class Investment(object):
         # Need to check cash
         if stock_id not in self.investment.keys():
             self.add_stock(stock_id)
-        signal = self.investment[stock_id].buy(**{"volume": trade_volume, "price": trade_price})        
-        return signal
+        order = self.investment[stock_id].buy(**{"volume": trade_volume, "price": trade_price})        
+        return order
 
     def sell_stock(self, stock_id: str, trade_volume: int, trade_price: float):
         if stock_id in self.investment.keys():
-            signal = self.investment[stock_id].buy(**{"volume": trade_volume, "price": trade_price}) 
+            order = self.investment[stock_id].buy(**{"volume": trade_volume, "price": trade_price}) 
         else:
-            signal = TradeOrder(stock_id, 'null', 1, 0, 0, 0)
-        return signal
+            order = TradeOrder(stock_id, 'null', 1, 0, 0, 0)
+        return order
 
     def del_stock(self, stock_id: str):
         if stock_id in self.investment.keys():
@@ -73,14 +73,14 @@ class Investment(object):
 
     def update_order(self, order, trade_val, cost, trade_price):
         # handle order, order is a order class, defined in exchange.py
-        if order.direction == Order.BUY:
+        if order.direction == TradeOrder.BUY:
             # BUY
             self.buy_stock(order.stock_id, trade_val, cost, trade_price)
-        elif order.direction == Order.SELL:
+        elif order.direction == TradeOrder.SELL:
             # SELL
             self.sell_stock(order.stock_id, trade_val, cost, trade_price)
         else:
-            raise NotImplementedError("do not suppotr order direction {}".format(order.direction))
+            raise NotImplementedError("do not support order direction {}".format(order.direction))
 
     def update_stock_price(self, stock_id, price):
         self.investment[stock_id].price = price

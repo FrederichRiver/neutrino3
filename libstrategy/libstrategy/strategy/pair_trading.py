@@ -2,7 +2,7 @@
 """
 Pair Trading Method
 """
-import abc
+from abc import ABCMeta
 from datetime import datetime, timedelta, date
 from libmysql_utils.header import LOCAL_HEADER
 from libmysql_utils.mysql8 import mysqlBase, mysqlHeader, mysqlQuery
@@ -14,8 +14,8 @@ import numpy as np
 from statsmodels.tsa.stattools import adfuller
 from pandas.core.series import Series
 from libstrategy.utils.anzeichen import SignalBase, SignalPairTrade
-from libstrategy.utils.order import TradeSignal
-from libstrategy.data_engine import DataEngine
+from libstrategy.utils.order import TradeOrder
+from libstrategy.data_engine.data_engine import StockData
 from libutils.utils import f2percent
 
 # from libstrategy.strategy_utils import StockPrice
@@ -28,7 +28,7 @@ from libutils.utils import f2percent
 # ADF假设检验方法
 def cointegration():
     # import matplotlib.pyplot as plt
-    event = DataEngine(LOCAL_HEADER)
+    event = StockData(LOCAL_HEADER)
     bm = event.get_log_price('SH600000', start='2019-01-01', end='2019-04-01')
     # event.profit_matrix('SZ002460', bm)
     df = event.get_log_price('SH601988', start='2019-01-01', end='2019-04-01')
@@ -97,7 +97,7 @@ def cointegration():
 # 6. 创建资产组合价值跟踪
 # 7. 回测评估
 
-class StrategyBase(abc):
+class StrategyBase(metaclass=ABCMeta):
     def __init__(self, from_date, to_date ) -> None:
         self.from_date = from_date
         self.to_date = to_date
@@ -184,10 +184,10 @@ class PairTrade(StrategyBase):
         return [msg_1, msg_2]
 
     def _long_trade(self, stock: str, price: float, bid: int):
-        return TradeSignal(stock, 'null', price, bid)
+        return TradeOrder(stock, 'null', price, bid)
 
     def _short_trade(self, stock: str, price: float, bid: int):
-        return TradeSignal(stock, 'null', price, bid)
+        return TradeOrder(stock, 'null', price, bid)
 
 
 class BackTest(object):
@@ -235,7 +235,7 @@ def backtest2():
     head = mysqlHeader(acc='stock', pw='stock2020', db='stock', host='115.159.1.221')
     start = '2020-01-01'
     end = '2021-05-28'
-    stock_market = DataEngine(head , start, end)
+    stock_market = StockData(head , start, end)
     print(stock_market)
     # A = 'SH600000'
     # B = 'SH601988'

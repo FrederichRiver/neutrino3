@@ -85,7 +85,7 @@ class StockData(DataBase):
         if query_date in self.data.index:
             result = self.data.loc[query_date]
         else:
-            result = None
+            result = DataFrame()
         return result
 
     @property

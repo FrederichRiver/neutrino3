@@ -31,5 +31,5 @@ class TradeOrder(object):
         self.factor = factor
 
     def __str__(self) -> str:
-        direction = "Buy" if self.bid > 0 else "Sell"
-        return f"{direction} {self.bid} {self.code} at price of {self.price}.\n"
+        direction = "Buy" if self.direction > 0 else "Sell"
+        return f"{direction} {self.bid} {self.stock_code} at price of {self.price}."

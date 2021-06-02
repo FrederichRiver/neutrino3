@@ -1,7 +1,7 @@
 #!/usr/bin/python38
-import abc
+from abc import ABCMeta
 
-class SignalBase(abc):
+class SignalBase(metaclass=ABCMeta):
     def __init__(self) -> None:
         """
         0 means start
