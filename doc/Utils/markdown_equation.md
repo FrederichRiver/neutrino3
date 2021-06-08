@@ -21,30 +21,30 @@ $$\Gamma(z) = \int_0^\infty t^{z-1}e^{-t}dt\,.$$
 
 ## 希腊字母
 
-|名称|	大写|	code|	小写|	code|
+|名称|大写|code|小写|code|
 |-|-|-|-|-|
-|alpha|	A|	A|	α|	\alpha|
-|beta|	B|	B|	β|	\beta|
-|gamma|	Γ|	\Gamma|	γ|	\gamma|
-|delta|	Δ|	\Delta|	δ|	\delta|
-|epsilon|	E|	E|	ϵ|	\epsilon|
-|zeta|	Z|	Z|	ζ|	\zeta|
-|eta|	H|	H|	η|	\eta|
-|theta|	Θ|	\Theta|	θ|	\theta|
-|iota|	I|	I|	ι|	\iota|
-|kappa|	K|	K|	κ|	\kappa|
-|lambda|	Λ|	\Lambda|	λ|	\lambda|
-|mu|	M|	M|	μ|	\mu|
-|nu|	N|	N|	ν|	\nu|
-|xi|	Ξ|	\Xi|	ξ|	\xi|
-|omicron|	O|	O|	ο|	\omicron|
+|alpha|A|A|α|\alpha|
+|beta|B|B|β|\beta|
+|gamma|Γ|\Gamma|γ|\gamma|
+|delta|Δ|\Delta|δ|\delta|
+|epsilon|E|E|ϵ|\epsilon|
+|zeta|Z|Z|ζ|\zeta|
+|eta|H|H|η|\eta|
+|theta|Θ|\Theta|θ|\theta|
+|iota|I|I|ι|\iota|
+|kappa|K|K|κ|\kappa|
+|lambda|Λ|\Lambda|λ|\lambda|
+|mu|M|M|μ|\mu|
+|nu|N|N|ν|\nu|
+|xi|Ξ|\Xi|ξ|\xi|
+|omicron|O|O|ο|\omicron|
 |pi|	Π|	\Pi|	π|	\pi|
-|rho|	P|	P|	ρ|	\rho|
+|rho|	P|	P|ρ|	\rho|
 |sigma|	Σ|	\Sigma|	σ|	\sigma|
-|tau|	T|	T|	τ|	\tau|
-|upsilon|	Υ|	υ|	\upsilon|
+|tau|	T|	T|τ|	\tau|
+|upsilon|	Υ|υ|	\upsilon|
 |phi|	Φ|	\Phi|	ϕ|	\phi|
-|chi|	X|	X|	χ|	\chi|
+|chi|	X|	X|χ|	\chi|
 |psi|	Ψ|	\Psi|	ψ|	\psi|
 |omega|	Ω|	\Omega|	ω|	\omega|
 
@@ -56,7 +56,7 @@ $$\Gamma(z) = \int_0^\infty t^{z-1}e^{-t}dt\,.$$
 ## 括号
 
 小括号与方括号
-  使用原始的( ) ，[ ] 即可，如$(2+3)[4+4]$ ： 
+  使用原始的( ) ，[ ] 即可，如$(2+3)[4+4]$ ：
   使用\left(或\right)使符号大小与邻近的公式相适应（该语句适用于所有括号类型），如$\left(\frac{x}{y}\right)$ ：
 
 大括号
@@ -87,12 +87,16 @@ $$\Gamma(z) = \int_0^\infty t^{z-1}e^{-t}dt\,.$$
   $\iiint$ ：
   $\iiiint$ ：
 
-连乘
-  $\prod {a+b}$，输出：。
-  $\prod_{i=1}^{K}$，输出：。
-  $$\prod_{i=1}^{K}$$，输出：。
+### 连乘
 
-其他
+`$\prod {a+b}$`，输出：$\prod {a+b}$
+
+`$\prod_{i=1}^{K}$`，输出：$\prod_{i=1}^{K}$
+
+`$$\prod_{i=1}^{K}$$`，输出：$$\prod_{i=1}^{K}$$
+
+### 其他
+
   与此类似的符号还有，
   $\prod$ ：
   $\bigcup$ ：
@@ -106,34 +110,41 @@ $$\Gamma(z) = \int_0^\infty t^{z-1}e^{-t}dt\,.$$
 
 ## 分式与根式
 
-分式
+### 分式
+
 第一种，使用\frac ab，\frac作用于其后的两个组a ，b ，结果为。如果你的分子或分母不是单个字符，请使用{..}来分组，比如$\frac {a+c+1}{b+c+2}$表示。
 第二种，使用\over来分隔一个组的前后两部分，如{a+1\over b+1}：
-连分数
-  书写连分数表达式时，请使用\cfrac代替\frac或者\over两者效果对比如下：
-  \frac 表示如下：
+
+### 连分数
+
+书写连分数表达式时，请使用`\cfrac`代替`\frac`或者`\over`两者效果对比如下：
+`\frac` 表示如下：
 
 $$x=a_0 + \frac {1^2}{a_1 + \frac {2^2}{a_2 + \frac {3^2}{a_3 + \frac {4^2}{a_4 + ...}}}}$$
-  显示如下：
+显示如下：
 
-  \cfrac 表示如下：
+`\cfrac`表示如下：
 
 $$x=a_0 + \cfrac {1^2}{a_1 + \cfrac {2^2}{a_2 + \cfrac {3^2}{a_3 + \cfrac {4^2}{a_4 + ...}}}}$$
-  显示如下：
+显示如下：
 
-根式
-  根式使用\sqrt 来表示。
-  如开4次方：$\sqrt[4]{\frac xy}$ ：。
-  开平方：$\sqrt {a+b}$：。
+## 根式
+
+根式使用`\sqrt`来表示。
+如开4次方：`$\sqrt[4]{\frac xy}$`：$\sqrt[4]{\frac xy}$
+开平方`$\sqrt {a+b}$`：$\sqrt {a+b}$
 
 ## 多行表达式
 
-分类表达式
-  定义函数的时候经常需要分情况给出表达式，使用\begin{cases}…\end{cases} 。其中：
+### 分类表达式
 
-  使用\\ 来分类，
-  使用& 指示需要对齐的位置，
-  使用\ +空格表示空格。
+定义函数的时候经常需要分情况给出表达式，使用`\begin{cases}…\end{cases}` 。其中：
+
+* 使用\\ 来分类
+* 使用& 指示需要对齐的位置
+* 使用\ +空格表示空格
+
+```
 $$
 f(n)
 \begin{cases}
@@ -141,8 +152,18 @@ f(n)
 3n + 1, &if\  n\ is\ odd
 \end{cases}
 $$
-  表示:
+```
 
+表示:
+$$
+f(n)
+\begin{cases}
+\cfrac n2, &if\ n\ is\ even\\
+3n + 1, &if\  n\ is\ odd
+\end{cases}
+$$
+
+```
 $$
 L(Y,f(X)) =
 \begin{cases}
@@ -150,8 +171,16 @@ L(Y,f(X)) =
 1, & \text{Y $\neq$ f(X)}
 \end{cases}
 $$
-  表示:
+```
 
+表示:
+$$
+L(Y,f(X)) =
+\begin{cases}
+0, & \text{Y = f(X)}  \\
+1, & \text{Y $\neq$ f(X)}
+\end{cases}
+$$
   如果想分类之间的垂直间隔变大，可以使用\\[2ex] 代替\\ 来分隔不同的情况。(3ex,4ex 也可以用，1ex 相当于原始距离）。如下所示：
 
 $$
@@ -163,7 +192,8 @@ L(Y,f(X)) =
 $$
   表示：
 
-多行表达式
+### 多行表达式
+
   有时候需要将一行公式分多行进行显示。
 
 $$
@@ -213,17 +243,17 @@ $$
 
 ### 集合关系与运算
 
-  并集(\cup ): 
-  交集(\cap ): 
-  差集(\setminus ): 
-  子集(\subset ): 
-  子集(\subseteq ): 
-  非子集(\subsetneq ): 
-  父集(\supset ): 
-  属于(\in ): 
-  不属于(\notin ): 
-  空集(\emptyset ): 
-  空(\varnothing ): 
+  并集(\cup ): $\cup$
+  交集(\cap ): $\cap$
+  差集(\setminus ): $\setminus$
+  子集(\subset ): $\subset$
+  子集(\subseteq ): $\subseteq$
+  非子集(\subsetneq ): $\subsetneq$
+  父集(\supset ): $\supset$
+  属于(\in ): $\in$
+  不属于(\notin ): $\notin$
+  空集(\emptyset ): $\emptyset$
+  空(\varnothing ): $\varnothing$
 
 ### 排列
 
@@ -320,7 +350,6 @@ n & \text{Left} & \text{Center} & \text{Right} \\
 \end{array}
 $$
   得到：
-
 
 ## 矩阵
 

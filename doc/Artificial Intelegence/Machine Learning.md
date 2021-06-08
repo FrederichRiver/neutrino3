@@ -362,6 +362,7 @@ torch.norm(y-predict,2)**2
 $$Loss = -\sum_i P(i)logP(i)$$
 $$h(p,q)=-\sum p(x)log q(x)$$
 $$H(p,q)=H(p)+D_{KL}(p|q)$$
+
 #### 自动求导机制
 
 autograd.grad
@@ -398,10 +399,12 @@ $$\frac{\partial E}{\partial x_j}=(O_0-t)O_0(1-O_0)x_j$$
 
 * 多输出感知机
 图
+
 ```mermaid
 graph LR;
 id1((x0)) --> id2((Sigma));
 ```
+
 Loss函数：
 $$E=\frac{1}{2}\sum_i^m(O_i^1-t_i)^2$$
 Loss梯度：
@@ -431,3 +434,9 @@ $$\frac{\partial E}{\partial w_{ij}^J}$$
 卷积网络的特征：
 
 data -> map
+
+## Covex Optimization
+
+Definition: For a function $f: R^d \rightarrow R$
+
+* $f$ is $\sigma$-strongly convex $if \forall x,y \in R^d$, it satisfies $f(y)\ge f(x) + \langle \partial f(x),y-x\rangle+\frac {\sigma}{2} ||x-y||^2$
