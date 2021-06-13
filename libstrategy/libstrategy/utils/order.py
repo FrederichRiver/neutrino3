@@ -6,12 +6,13 @@ class TradeOrder(object):
     SELL = -1
     BUY = 1
 
-    def __init__(self, stock_code: str, trade_time, direction, price: float, bid: int, factor: float) -> None:
+    def __init__(self, stock_code: str, trade_time: str, direction, price: float, bid: int) -> None:
         """Parameter
         direction : Order.SELL(-1) for sell; Order.BUY(1) for buy
+        trade_time: str in format Y-m-d
         stock_code : str
         amount : float
-        trade_date : pd.Timestamp
+        # trade_date : pd.Timestamp
         price : float
         factor : float
             presents the weight factor assigned in Exchange()
@@ -28,8 +29,7 @@ class TradeOrder(object):
         self.direction = direction
         self.trade_time = trade_time
         self.price = price
-        self.factor = factor
 
     def __str__(self) -> str:
         direction = "Buy" if self.direction > 0 else "Sell"
-        return f"{direction} {self.bid} {self.stock_code} at price of {self.price}."
+        return f"{direction} {self.bid} {self.stock_code} at price of {self.price} at {self.trade_time}."

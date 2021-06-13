@@ -46,39 +46,40 @@ class AssetBase(object):
         self.count = 0
         self.weight = 0.0
 
-    def buy(self, **args):
+    def buy(self, trade_date: str, volume: int, price: float) -> TradeOrder:
         """
         keys: volume, price
         """
-        self.volume += args.get('volume')
-        vol = args.get('price') * args.get('volume')
+        self.volume += volume
+        vol = price * volume
         # Any fee
         fee = self.Fee(vol)
         commission = self.Comm(vol)
         # settle
-        self.cash -= round(vol, 2)
+        self.cash -= vol
         self.cash -= (fee + commission)
-        self.price = args.get('price')
-        return TradeOrder(self.stock_code, 'null', 1, args.get('price'), args.get('volume'), 1.0)
+        self.price = price
+        return TradeOrder(self.stock_code, trade_date, 1, price, volume)
 
-    def sell(self, **args):
-        self.volume += args.get('volume')
-        vol = args.get('price') * args.get('volume')
+    def sell(self, trade_date: str, volume: int, price: float) -> TradeOrder:
+        self.volume -= volume
+        vol = price * volume
         # Any fee
         tax = self.TAX(vol)
         fee = self.Fee(vol)
         commission = self.Comm(vol)
         # settle
-        self.cash -= round(vol, 2)
+        self.cash += vol
         self.cash -= (tax + fee + commission)
-        self.price = args.get('price')
-        return TradeOrder(self.stock_code, 'null', -1, args.get('price'), args.get('volume'), 1.0)
+        self.price = price
+        return TradeOrder(self.stock_code, trade_date, -1, price, volume)
 
-    def settle(self, price: float):
+    def settle(self, trade_date, price: float) -> TradeOrder:
         volume = self.volume
-        self.cash += price * self.volume
+        self.cash += price * volume
         self.volume = 0
-        return TradeOrder(self.stock_code, 'null', -1, price, volume, 1.0)
+        self.price = price
+        return TradeOrder(self.stock_code, trade_date, -1, price, volume)
 
     @property
     def value(self):
@@ -92,29 +93,3 @@ class AssetBase(object):
 class StockAsset(AssetBase):
     pass
 
-
-class InvestGroup(object):
-    def __init__(self) -> None:
-        self.pool = []
-
-    
-
-if __name__ == '__main__':
-    capital = AssetBase('SH600000', 5000.0)
-    print(capital)
-    trade_set = [
-        {'price': 6.02, 'volume': 100},
-        {"price": 5.37, "volume": 100},
-        {"price": 6.75, "volume": 100},
-        {"price": 7.12, "volume": -100},
-        {"price": 7.34, "volume": -100},
-        {"price": 8.57, "volume": -100},
-    ]
-    for trade in trade_set:
-        if trade['volume'] > 0:
-            capital.buy(**trade)
-        else:
-            capital.sell(**trade)
-        print(capital)
-    capital.settle(9.03)
-    print(capital)

@@ -14,8 +14,10 @@ class SignalBase(metaclass=ABCMeta):
     def signal(self):
         return self._value
 
-    def set_threshold(self, **param):
-        raise NotImplementedError
+    def set_end(self):
+        self._value = -1
+        return self._value
+
 
 class SignalPairTrade(SignalBase):
     """
@@ -38,10 +40,6 @@ class SignalPairTrade(SignalBase):
         self.beta = kwargs.get('beta')
         self.alpha = kwargs.get('alpha')
 
-    def set_end(self):
-        self._value = -1
-        return self._value
-
     def __call__(self, a: float, b: float) -> None:
         d = a - self.beta * b - self.alpha
         if (d > self._high) and (self._state != 1):
@@ -53,3 +51,5 @@ class SignalPairTrade(SignalBase):
         else:
             self._value = 0
         return self.signal
+
+

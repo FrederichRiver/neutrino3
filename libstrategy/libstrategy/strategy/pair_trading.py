@@ -103,17 +103,17 @@ class StrategyBase(metaclass=ABCMeta):
         self.to_date = to_date
 
 
-class PairTrade(StrategyBase):
+class PairTradeStrategy(StrategyBase):
     """
     Strategy class
     """
     def __init__(self, stock_1: str, stock_2: str, from_date, to_date ) -> None:
-        super(PairTrade, self).__init__(from_date, to_date)
-        self._ratio = 0.0
-        self.stock_1 = stock_1
-        self.quant_1 = 0
-        self.stock_2 = stock_2
-        self.quant_2 = 0
+        super(PairTradeStrategy, self).__init__(from_date, to_date)
+        self._state = 0
+        self._high = 0.0
+        self._low = 0.0
+        self.beta = 0.0
+        self.alpha = 0.0
         self.trade_list = []
 
     def add_trade(self, trade_msg: list):
@@ -156,38 +156,58 @@ class PairTrade(StrategyBase):
         std = np.std(e)
         return result, model.params[1], model.params[0], std
 
-    def trade(self, signal: SignalBase, price_a: float, price_b: float):
-        if signal.signal == 0:
-            pass
-        elif signal.signal == 1:
-            self.add_trade(
-                self.pair_trade_1(self.stock_1, price_a, self.stock_2, price_b)
-                )
-        elif signal.signal == 2:
-            self.add_trade(
-                self.pair_trade_2(self.stock_1, price_a, self.stock_2, price_b)
-                )
+    def set_threshold(self, **kwargs):
+        self._high = kwargs.get('high')
+        self._low = kwargs.get('low')
+        self.beta = kwargs.get('beta')
+        self.alpha = kwargs.get('alpha')
+
+    def __call__(self, a: float, b: float) -> None:
+        d = a - self.beta * b - self.alpha
+        if (d > self._high) and (self._state != 1):
+            self._state = 1
+            return 1
+        elif (d < self._low) and (self._state != 2):
+            self._state = 2
+            return 2
+        else:
+            return 0
 
 
-    def pair_trade_1(self, stock_1: str, a: float, stock_2: str, b: float):
-        bid_1 = 100
-        bid_2 = -bid_1 * round(self._ratio)
-        msg_1 = self._long_trade(stock_1, a, bid_1)
-        msg_2 = self._short_trade(stock_2, b, bid_2)
-        return [msg_1, msg_2]
+class BenchMarkStrategy(StrategyBase):
+    """
+    Strategy class
+    """
+    def __init__(self, stock_id: str, from_date, to_date ) -> None:
+        super(BenchMarkStrategy, self).__init__(from_date, to_date)
+        self._ratio = 0.0
+        self.stock_id = stock_id
+        self.quant_1 = 0
+        self.trade_list = []
+        self.Today = from_date
 
-    def pair_trade_2(self, stock_1: str, a: float, stock_2: str, b: float):
-        bid_1 = -100
-        bid_2 = -bid_1 * round(self._ratio)
-        msg_1 = self._short_trade(stock_1, a, bid_1)
-        msg_2 = self._long_trade(stock_2, b, bid_2)
-        return [msg_1, msg_2]
+    def add_trade(self, trade_msg: list):
+        self.trade_list.extend(trade_msg)
 
-    def _long_trade(self, stock: str, price: float, bid: int):
-        return TradeOrder(stock, 'null', price, bid)
+    def __str__(self) -> str:
+        text = ''
+        for m in self.trade_list:
+            text += m.__str__()
+        return text
 
-    def _short_trade(self, stock: str, price: float, bid: int):
-        return TradeOrder(stock, 'null', price, bid)
+    def isTradeStart(self, trade_date):
+        return (self.from_date == trade_date.strftime('%Y-%m-%d'))
+
+    def isTradeEnd(self, trade_date):
+        return (self.to_date == trade_date.strftime('%Y-%m-%d'))
+
+    def run(self,trade_date):
+        if self.isTradeEnd(trade_date):
+            return -1
+        elif self.isTradeStart(trade_date):
+            return 1
+        else:
+            return 0
 
 
 class BackTest(object):
@@ -244,7 +264,7 @@ def backtest2():
     stock_market.add_asset(A)
     stock_market.add_asset(B)
     stock_market.update()
-    Trade = PairTrade(A, B, '2019-01-01', '2021-03-01')
+    Trade = PairTradeStrategy(A, B, '2019-01-01', '2021-03-01')
     result, beta, mean, std = Trade.cointegration_check(stock_market.data[A], stock_market.data[B])
     print(mean, std)
     Signal = SignalPairTrade()
