@@ -7,11 +7,13 @@ from libstrategy.utils.investment import Investment
 import pandas as pd
 import pathlib
 
+from pandas.core.frame import DataFrame
+
 class Report(object):
-    def __init__(self) -> None:
-        super().__init__()
-        self.__earning_rate = 0.0
-        self.__annalized_return = 0.0
+    def __init__(self, id: str) -> None:
+        self.id = id
+        self.earning_rate = 0.0
+        self.annalized_return = 0.0
         self.winning_rate = 0.0
         self.profit_loss_ratio = 0.0
         self.max_draw = 0.0
@@ -19,17 +21,34 @@ class Report(object):
         self.sotino_ratio = 0.0
         self.trade_list = []
         self.period = 0
+        self.history_value = None
 
     def get_investment(self, investment: Investment):
         self.init_cash = investment.INITIAL_VALUE
+        self.history_value = investment.history_value.copy()
+        self.history_value.columns = [self.id]
 
-    def earning_rate(self):
-        self.__earning_rate = 0
-        return self.__earning_rate
+    def get_data(self, data: DataFrame):
+        self.history_value = data.copy()
+        self.history_value.columns = [self.id]
 
-    @property
-    def annalized_return(self):
-        return self.__annalized_return
+    def run(self) -> dict:
+        self.history_value['ret'] = self.history_value[self.id] / self.history_value[self.id].shift(1)
+        self.history_value['cum_return'] = self.history_value['ret'].cumprod()
+        self.history_value["draw"] = self.history_value['cum_return'].diff()
+        nu = self.history_value['ret'].mean() - 1
+        Rf = 0.03 / 252
+        self.history_value['var'] = self.history_value['ret'] - nu
+        sigma = self.history_value['var'].var()
+        self.period = self.history_value.shape[0]
+        self.total_return = self.history_value.iloc[[-1]]['cum_return'].values[0] - 1
+        self.annalized_return = self.total_return * 252 / self.period
+        self.sharpe_ratio = (nu - Rf) / sigma
+        self.max_draw =  self.history_value['cum_return'].diff().min()
+        return {
+            "total_return": self.total_return, "annalized_return": self.annalized_return,
+            "sharpe_ratio": self.sharpe_ratio, "max_draw": self.max_draw
+        }
 
     def add_trade(self, trade_order):
         if isinstance(trade_order, list):

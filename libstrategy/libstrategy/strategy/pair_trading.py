@@ -102,6 +102,11 @@ class StrategyBase(metaclass=ABCMeta):
         self.from_date = from_date
         self.to_date = to_date
 
+    def isTradeStart(self, trade_date):
+        return (self.from_date == trade_date.strftime('%Y-%m-%d'))
+
+    def isTradeEnd(self, trade_date):
+        return (self.to_date == trade_date.strftime('%Y-%m-%d'))
 
 class PairTradeStrategy(StrategyBase):
     """
@@ -162,8 +167,10 @@ class PairTradeStrategy(StrategyBase):
         self.beta = kwargs.get('beta')
         self.alpha = kwargs.get('alpha')
 
-    def __call__(self, a: float, b: float) -> None:
-        d = a - self.beta * b - self.alpha
+    def run(self,trade_date, price_1: float, price_2: float):
+        if self.isTradeStart(trade_date):
+            return 3
+        d = price_1 - self.beta * price_2 - self.alpha
         if (d > self._high) and (self._state != 1):
             self._state = 1
             return 1
@@ -195,11 +202,7 @@ class BenchMarkStrategy(StrategyBase):
             text += m.__str__()
         return text
 
-    def isTradeStart(self, trade_date):
-        return (self.from_date == trade_date.strftime('%Y-%m-%d'))
 
-    def isTradeEnd(self, trade_date):
-        return (self.to_date == trade_date.strftime('%Y-%m-%d'))
 
     def run(self,trade_date):
         if self.isTradeEnd(trade_date):

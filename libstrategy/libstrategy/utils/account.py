@@ -3,7 +3,6 @@ from abc import ABCMeta
 import copy
 
 from .investment import Investment
-from .report import Report
 from .order import TradeOrder
 
 
@@ -16,30 +15,34 @@ class Account(metaclass=ABCMeta):
         self.Strategy = strategy
         self.investment = Investment(cash=init_cash)
 
-    def run(self, data: list, trade_data: list):
+    def run(self, data: list, trade_price: list):
+        """
+        Reserve Method, used in automatic environment.
+        Not completed.
+        """
         if signal := self.Strategy(data):
-            self._trade(signal, trade_data)
+            self.trade(signal, trade_price)
     
-    def _trade(self, signal, date, trade_data):
+    def trade(self, signal, date, trade_price):
         raise NotImplementedError
 
 
 class Benchmark(Account):
-    def __init__(self, name: str, strategy, init_cash: float, benchmark: str):
+    def __init__(self, name: str, strategy, init_cash: float, stock_id: str):
         super().__init__(name, strategy, init_cash=init_cash)
-        self.investment.init_stock([benchmark])
-        self.stock_id = benchmark
+        self.investment.init_stock([stock_id])
+        self.stock_id = stock_id
 
     def update_price(self, date, price_list):
         self.investment.profolio[self.stock_id].price = price_list[self.stock_id]
         self.investment.add_hist_value(date, self.investment.value)
 
-    def _trade(self, signal, trade_date, trade_data):
+    def trade(self, signal, trade_date, trade_price):
         trade_date = trade_date.strftime('%Y-%m-%d')
         if signal == 1:
-            order = self._positive_trade(trade_date, self.stock_id, trade_data[self.stock_id])
+            order = self._positive_trade(trade_date, self.stock_id, trade_price[self.stock_id])
         elif signal == -1:
-            order = self._settle(trade_date, trade_data[self.stock_id])
+            order = self.settle(trade_date, trade_price[self.stock_id])
         else:
             order = []
         return order
@@ -50,11 +53,21 @@ class Benchmark(Account):
             trade_date=trade_date, volume=vol, price=price)
         return [order, ]
 
-    def _settle(self, trade_date, price: float):
+    def settle(self, trade_date, price: float):
         order = self.investment.profolio[self.stock_id].settle(trade_date, price)
         return [order, ]
 
+
 class PairTrading(Account):
+    """
+    Pair Trading Agent.
+    Workflow:
+    Step 1: Init position
+    Step 2: Trade in each time step
+        2.1 trade
+        2.2 update_price
+    Step 3: Settle
+    """
     def __init__(self, name: str, strategy, init_cash: float, A: str, B: str, beta: float):
         super().__init__(name, strategy, init_cash=init_cash)
         self.investment.init_stock([A, B])
@@ -67,15 +80,29 @@ class PairTrading(Account):
         self.investment.profolio[self.B].price = price_list[self.B]
         self.investment.add_hist_value(date, self.investment.value)
 
-    def _trade(self, signal, trade_date, trade_data):
+    def init_position(self, trade_date, stock_id: str, price: float):
+        vol = int(self.investment.cash / price)
+        order = self.investment.profolio[stock_id].buy(
+            trade_date=trade_date, volume=vol, price=price)
+        return [order, ]
+
+    def trade(self, signal, trade_date, trade_price):
+        """
+        Param:
+        param: signal settle(-1), no-action(0), pos-trade(1), neg-trade(2)
+        param: trade_date: Timestamp
+        param: trade_price: DataFrame
+        """
         trade_date = trade_date.strftime('%Y-%m-%d')
         if signal == 1:
-            pair = self._positive_trade(trade_date, self.A, trade_data[self.A], self.B, trade_data[self.B])
+            pair = self._positive_trade(trade_date, self.A, trade_price[self.A], self.B, trade_price[self.B])
         elif signal == 2:
-            pair = self._negtive_trade(trade_date, self.A, trade_data[self.A], self.B, trade_data[self.B])
+            pair = self._negtive_trade(trade_date, self.A, trade_price[self.A], self.B, trade_price[self.B])
+        elif signal == 3:
+            pair = self._positive_trade(trade_date, self.A, trade_price[self.A], self.B, trade_price[self.B])
         elif signal == -1:
-            order1 = self.investment.profolio[self.A].settle(trade_date, trade_data[self.A])
-            order2 = self.investment.profolio[self.B].settle(trade_date, trade_data[self.B])
+            order1 = self.investment.profolio[self.A].settle(trade_date, trade_price[self.A])
+            order2 = self.investment.profolio[self.B].settle(trade_date, trade_price[self.B])
             pair = [order1, order2]
         else:
             pair = []
@@ -102,3 +129,10 @@ class PairTrading(Account):
         order2 = self.investment.profolio[stock_2].buy(
             trade_date=trade_date, volume=v2, price=price_2)
         return [order1, order2]
+
+    def settle(self, trade_date, trade_price):
+        order_list = []
+        for asset_id in self.investment.asset_list:
+            order = self.investment.profolio[asset_id].settle(trade_date, trade_price[asset_id])
+            order_list.append(order)
+        return order_list
