@@ -7,7 +7,7 @@ from dev_global.var import stock_interest_column
 from dev_global.path import CONF_FILE
 from libmysql_utils.mysql8 import mysqlHeader
 from libbasemodel.stock_model import StockBase
-
+from libutils.utils import read_url
 
 __version__ = '1.2.4'
 
@@ -39,7 +39,7 @@ class EventInterest(StockBase):
         returns a dataframe table.\n
         Used for batch insert.
         """
-        url = self.read_url('URL_fh_163', CONF_FILE)
+        url = read_url('URL_fh_163', CONF_FILE)
         url = url.format(stock_code[2:])
         # result is a list of DataFrame table.
         result = pd.read_html(url, attrs={'class': 'table_bg001 border_box limit_sale'})
@@ -64,7 +64,7 @@ class EventInterest(StockBase):
         json_data = self.j2sql.dataframe_to_json(df, stock_interest_column)
         for data in json_data:
             # print(data)
-            sql = self.j2sql.to_sql_insert(data)
+            sql = self.j2sql.to_sql_insert(data, 'stock_interest')
             self.engine.execute(sql)
 
 

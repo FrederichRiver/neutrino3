@@ -21,7 +21,8 @@ __all__ = [
     'service_record_us_stock',
     'service_data_monitor',
     'service_update_finance_report',
-    'service_update_treasury_yield'
+    'service_update_treasury_yield',
+    'service_record_stock_interest'
     ]
 
 
@@ -208,6 +209,15 @@ def service_update_finance_report():
         event.update_balance(stock_code)
         event.update_cashflow(stock_code)
         event.update_income(stock_code)
+
+
+def service_record_stock_interest():
+    from libbasemodel.stock_interest import EventInterest
+    event = EventInterest(GLOBAL_HEADER)
+    event.j2sql.load_table('stock_interest')
+    stock_list = event.get_all_stock_list()
+    for stock_code in stock_list:
+        event.record_interest(stock_code)
 
 
 if __name__ == "__main__":

@@ -98,7 +98,7 @@ class PairTrading(Account):
             pair = self._positive_trade(trade_date, self.A, trade_price[self.A], self.B, trade_price[self.B])
         elif signal == 2:
             pair = self._negtive_trade(trade_date, self.A, trade_price[self.A], self.B, trade_price[self.B])
-        elif signal == 3:
+        if signal == 3:
             pair = self._positive_trade(trade_date, self.A, trade_price[self.A], self.B, trade_price[self.B])
         elif signal == -1:
             order1 = self.investment.profolio[self.A].settle(trade_date, trade_price[self.A])

@@ -7,6 +7,7 @@ lib_list = [
     'dev_global','libutils', 'libmysql_utils',
     'libbasemodel', 'libspider', 'libnlp',
     'libcontext', 'service_api', 'libstrategy', 'libtask']
+lib_list = ['libstrategy',]
 for lib in lib_list:
     print(f"[Building {lib}]")
     # go into library directory

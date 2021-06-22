@@ -81,6 +81,12 @@ class AssetBase(object):
         self.price = price
         return TradeOrder(self.stock_code, trade_date, -1, price, volume)
 
+    def xrdr(self, trade_date, bonus:float, increase: float, dividend: float) -> TradeOrder:
+        self.price -= bonus / 10
+        self.cash += 0.8 * bonus / 10
+        self.volume *= 1 + increase / 10 + dividend / 10
+        return TradeOrder(self.stock_code, trade_date, -1, 0.0, 0)
+
     @property
     def value(self):
         return self.volume * self.price + self.cash
