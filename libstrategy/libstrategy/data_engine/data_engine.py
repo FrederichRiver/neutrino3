@@ -5,7 +5,6 @@ from libmysql_utils.mysql8 import mysqlHeader, mysqlQuery
 from libbasemodel.form import formStockManager
 from pandas import DataFrame
 
-
 """
 1.从MySQL查询数据
 2.数据清理
@@ -46,6 +45,33 @@ class DataBase(mysqlQuery):
 
     def isStock(self, stock_code: str) -> bool:
         return stock_code in self.__stock_list
+
+
+
+class EventBase(ABC):
+    def __init__(self) -> None:
+        self.id = 0
+        self._timestamp = None
+        self.dataline = {}
+from enum import Enum
+
+class EventType(Enum):
+    XRDR = 1
+
+
+class XrdrEvent(EventBase):
+    def __init__(self, date_time, dataline) -> None:
+        super().__init__()
+        self.id = 1
+        self._timestamp = date_time
+        self.stock_id = dataline['stock_code']
+        self.bonus= dataline['bonus']
+        self.increase = dataline['increase']
+        self.dividend = dataline['dividend']
+
+    def __str__(self) -> str:
+        text = f"{self.stock_id} Xrdr on {self._timestamp}, bonus {self.bonus}, increase {self.increase}, dividend {self.dividend}."
+        return text
 
 
 class StockData(DataBase):
@@ -111,10 +137,10 @@ class StockData(DataBase):
                 self.dataline[f"{stock_code}_xrdr"] = self.dataline[f"{stock_code}_xrdr"] * self.factor[stock_code]
         return self.dataline
 
-    def update_factor(self, Xrdr_event):
+    def update_factor(self, Xrdr_event: XrdrEvent):
         stock_id = Xrdr_event.stock_id
         price = self.prev_dataline[f"{stock_id}_prev"]
-        self.factor[stock_id] = (1 - Xrdr_event.bonus / (10 * price)) / (1 + Xrdr_event.increase / 10 + Xrdr_event.dividend / 10)
+        self.factor[stock_id] = (1 - Xrdr_event.dividend / (10 * price)) / (1 + Xrdr_event.increase / 10 + Xrdr_event.bonus / 10)
         return self.factor[stock_id]
 
 class EventEngine(DataBase):
@@ -138,34 +164,10 @@ class EventEngine(DataBase):
                 df = DataFrame()
             self.data[stock_code] = df
 
-    def get(self, stock_code, query_date: pd.Timestamp):
-        if query_date in self.data[stock_code].index:
-            self.dataline = self.data[stock_code].loc[query_date]
-            return XrdrEvent(query_date, self.dataline)
-        else:
-            return None
-
-class EventBase(ABC):
-    def __init__(self) -> None:
-        self.id = 0
-        self._timestamp = None
-        self.dataline = {}
-from enum import Enum
-
-class EventType(Enum):
-    XRDR = 1
-
-
-class XrdrEvent(EventBase):
-    def __init__(self, date_time, dataline) -> None:
-        super().__init__()
-        self.id = 1
-        self._timestamp = date_time
-        self.stock_id = dataline['stock_code']
-        self.bonus= dataline['bonus']
-        self.increase = dataline['increase']
-        self.dividend = dataline['dividend']
-
-    def __str__(self) -> str:
-        text = f"bonus {self.bonus}, increase {self.increase}, dividend {self.dividend} on {self._timestamp}"
-        return text
+    def get(self, stock_code, query_date: pd.Timestamp) -> list:
+        event_list = []
+        for stock_code in self.pool:
+            if query_date in self.data[stock_code].index:
+                self.dataline = self.data[stock_code].loc[query_date]
+                event_list.append(XrdrEvent(query_date, self.dataline))
+        return event_list

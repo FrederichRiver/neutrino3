@@ -55,7 +55,7 @@ class Investment(object):
         text = ''
         for asset_id, asset in self.profolio.items():
             text += f"{asset.__str__()}\n"
-        return f"Investment:\n{text}."
+        return f"Investment:\n{text}"
 
     def inProfolio(self, stock_id: str) -> bool:
         return stock_id in self.profolio.keys()

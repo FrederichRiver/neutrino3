@@ -4,6 +4,8 @@ import copy
 
 from .investment import Investment
 from .order import TradeOrder
+from libstrategy.data_engine.data_engine import EventBase
+from math import ceil
 
 
 class Account(metaclass=ABCMeta):
@@ -33,7 +35,7 @@ class Benchmark(Account):
         self.investment.init_stock([stock_id])
         self.stock_id = stock_id
 
-    def update_price(self, date, price_list):
+    def _update_price(self, date, price_list):
         self.investment.profolio[self.stock_id].price = price_list[self.stock_id]
         self.investment.add_hist_value(date, self.investment.value)
 
@@ -45,10 +47,11 @@ class Benchmark(Account):
             order = self.settle(trade_date, trade_price[self.stock_id])
         else:
             order = []
+        self._update_price(trade_date, price_list=trade_price)
         return order
 
     def _positive_trade(self, trade_date, stock_id: str, price: float):
-        vol = int(self.investment.cash / price)
+        vol = 100 * ceil(self.investment.cash / (100 * price))
         order = self.investment.profolio[stock_id].buy(
             trade_date=trade_date, volume=vol, price=price)
         return [order, ]
@@ -75,7 +78,7 @@ class PairTrading(Account):
         self.B = B
         self.ratio = beta
 
-    def update_price(self, date, price_list):
+    def _update_price(self, date, price_list):
         self.investment.profolio[self.A].price = price_list[self.A]
         self.investment.profolio[self.B].price = price_list[self.B]
         self.investment.add_hist_value(date, self.investment.value)
@@ -98,14 +101,13 @@ class PairTrading(Account):
             pair = self._positive_trade(trade_date, self.A, trade_price[self.A], self.B, trade_price[self.B])
         elif signal == 2:
             pair = self._negtive_trade(trade_date, self.A, trade_price[self.A], self.B, trade_price[self.B])
-        if signal == 3:
-            pair = self._positive_trade(trade_date, self.A, trade_price[self.A], self.B, trade_price[self.B])
         elif signal == -1:
             order1 = self.investment.profolio[self.A].settle(trade_date, trade_price[self.A])
             order2 = self.investment.profolio[self.B].settle(trade_date, trade_price[self.B])
             pair = [order1, order2]
         else:
             pair = []
+        self._update_price(trade_date, price_list=trade_price)
         return pair
 
     def _positive_trade(self, trade_date, stock_1: str, price_1: float, stock_2: str, price_2: float):
@@ -114,7 +116,7 @@ class PairTrading(Account):
                 trade_date=trade_date, volume=v, price=price_2)
         else:
             order1 = TradeOrder(stock_2, trade_date, -1, 0, 0)
-        v1 = int(self.investment.cash / price_1)
+        v1 = 100 * ceil(self.investment.cash / (100 * price_1))
         order2 = self.investment.profolio[stock_1].buy(
             trade_date=trade_date, volume=v1, price=price_1)
         return [order1, order2]
@@ -125,7 +127,7 @@ class PairTrading(Account):
                 trade_date=trade_date, volume=v, price=price_1)
         else:
             order1 = TradeOrder(stock_1, trade_date, -1, 0, 0)
-        v2 = int(v * self.ratio)
+        v2 = v * ceil(self.ratio)
         order2 = self.investment.profolio[stock_2].buy(
             trade_date=trade_date, volume=v2, price=price_2)
         return [order1, order2]

@@ -15,32 +15,47 @@ class unittest_capital(unittest.TestCase):
     def setUp(self):
         print("Capital test start.")
         self.head = mysqlHeader(acc='stock', pw='stock2020', db='stock', host='115.159.1.221')
+        self.A = 'SZ002460'
+        self.B = 'SZ002497'
 
     def tearDown(self):
         pass
 
-    #@unittest.skip("PASS!")
+    @unittest.skip("Asset buy & sell")
     def test_asset(self):
         print("Initial:")
-        asset = StockAsset('SZ002460', cash=20000)
+        asset = StockAsset('SZ002460', cash=100000)
         print(asset)
         print("Buy:")
-        asset.buy('null', volume=100, price=100)
-        print(asset)
-        print("Sell:")
-        asset.sell('null', volume=100, price=100)
-        print(asset)
-        print("Buy:")
-        asset.buy('null', volume=100, price=100)
-        print(asset)
-        print("Buy:")
-        asset.buy('null', volume=100, price=100)
-        print(asset)
-        print("Settle:")
-        asset.settle('null', price=100)
-        print(asset)
-
-    #@unittest.skip("PASS!")
+        print(f"Initial: {asset.value}")
+        asset.buy('null', volume=4600, price=21.88)
+        cost = 4600 * 21.88
+        print(f"Cost: {cost}")
+        commission = asset.Comm(cost)
+        print(f"Commission: {commission}")
+        fee = asset.Fee(cost)
+        print(f"Transfer fee: {fee}")
+        total = commission + fee
+        print(f"Total fee: {total}")
+        print(f"Cash: {asset.cash}")
+        print(f"Value: {asset.value}")
+        print("Sell")
+        asset.sell('null', volume=4600, price=22.27)
+        gain = 4600 * 22.27
+        print(f"Gain: {gain}")
+        tax = asset.TAX(gain)
+        print(f"Tax: {tax}")
+        commission = asset.Comm(gain)
+        print(f"Commission: {commission}")
+        fee = asset.Fee(gain)
+        print(f"Transfer fee: {fee}")
+        total = commission + fee + tax
+        print(f"Total fee: {total}")
+        get_cash = gain - total
+        print(f"Get: {get_cash}")
+        print(f"Value: {asset.value}")
+        
+    @unittest.skip("PASS!")
     def test_investment(self):
         invest = Investment(cash=100000.0)
         stock_list = ['SH601818', 'SZ000625', 'SZ002460']
@@ -50,14 +65,14 @@ class unittest_capital(unittest.TestCase):
         print(invest)
         invest.del_stock(stock_list[0])
         print(invest)
-        invest.buy_stock(stock_list[1], 'null', 100, 13.55)
+        invest.buy_stock(stock_list[1], 'null', 100, 10.0)
         print(invest)
         print(invest.value)
-        invest.sell_stock(stock_list[1], 'null', 100, 14.45)
+        invest.sell_stock(stock_list[1], 'null', 100, 11.0)
         print(invest)
         print(invest.value)
 
-    #@unittest.skip("Kalander")
+    @unittest.skip("Kalander")
     def test_calander(self):
         calendar = Kalendar('2019-1-3', "2019-02-03")
         for trade_date in calendar:
@@ -65,84 +80,80 @@ class unittest_capital(unittest.TestCase):
 
     #@unittest.skip("Benchmark")
     def test_benchmark_trade(self):
-        A = 'SZ002460'
         start = '2019-01-04'
         end = '2021-03-01'
         Data = StockData(self.head, start, end)
-        Data.Config(**{'asset': [A]})
-        strategy_benchamark = BenchMarkStrategy(A, start, end)
-        Mark = Benchmark('Mark', strategy_benchamark, 100000.0, A)
+        Data.Config(**{'asset': [self.A]})
+        strategy_benchamark = BenchMarkStrategy(self.A, start, end)
+        Mark = Benchmark('Mark', strategy_benchamark, 100000.0, self.A)
         calendar = Kalendar('2019-1-3', '2021-3-1')
         latest_data = None
-        end_date = None
         for trade_date in calendar:
-            end_date = trade_date
             data = Data.get(trade_date)
             latest_data = data
             if not data.empty:
                 signal2 = strategy_benchamark.run(trade_date)
-                bench_trade = Mark.trade(signal2, trade_date, data)
-                Mark.update_price(trade_date, data)
-        bench_trade = Mark.trade(-1, trade_date, latest_data)
-        Mark.update_price(trade_date, data)
+                bench_trade = Mark.trade(signal2, trade_date, data, None)
+                #Mark.update_price(trade_date, data)
+        bench_trade = Mark.trade(-1, trade_date, latest_data, None)
+        #Mark.update_price(trade_date, data)
         df2 = Mark.investment.get_hist_value()
         # print(df)
         plt.plot(df2)
         plt.show()
 
-    #@unittest.skip("Strategy")
+    @unittest.skip("Strategy")
     def test_pair_trade(self):
-        A = 'SZ002460'
-        B = 'SZ002497'
         start = '2019-01-03'
         end = '2021-03-01'
         Data = StockData(self.head, start, end)
-        Data.Config(**{'asset': [A, B]})
+        Data.Config(**{'asset': [self.A, self.B]})
         Xrdr = EventEngine(self.head, start, end)
-        Xrdr._add_asset(A)
-        Xrdr._add_asset(B)
+        Xrdr._add_asset(self.A)
+        Xrdr._add_asset(self.B)
         Xrdr.get_data(start=start, end=end)
         #print(Data.data)
-        _, beta, mean, std = cointegration_check(Data.data[A], Data.data[B])
+        _, beta, mean, std = cointegration_check(Data.data[self.A], Data.data[self.B])
         #print(beta, mean, std)
-        strategy = PairTradeStrategy(A, B, start, end)
-        strategy_benchamark = BenchMarkStrategy(A, start, end)
-        Mark = Benchmark('Mark', strategy_benchamark, 100000.0, A)
-        Mark2 = Benchmark('Mark2', strategy_benchamark, 100000.0, B)
-        Person = PairTrading('John',strategy, 100000.0, A, B, beta)
+        strategy = PairTradeStrategy(self.A, self.B, start, end)
+        strategy_benchamark = BenchMarkStrategy(self.A, start, end)
+        Mark = Benchmark('Mark', strategy_benchamark, 100000.0, self.A)
+        Mark2 = Benchmark('Mark2', strategy_benchamark, 100000.0, self.B)
+        Person = PairTrading('John',strategy, 100000.0, self.A, self.B, beta)
         strategy.set_threshold(**{"high":mean + std, "low": mean - std, "beta": beta, "alpha": mean})
         calendar = Kalendar('2019-1-3', '2021-3-1')
         latest_data = None
-        end_date = None
         report1 = Report('Pair Trading')
         report2 = Report('SZ002460')
         report3 = Report('SZ002497')
         for trade_date in calendar:
-            end_date = trade_date
-            event_1 = Xrdr.get(A, trade_date)
-            event_2 = Xrdr.get(B, trade_date)
-            if event_1:
-                Data.update_factor(event_1)
-                Person.investment.profolio[A].xrdr(trade_date, event_1.bonus, event_1.increase, event_1.dividend)
-            if event_2:
-                Data.update_factor(event_2)
-                Person.investment.profolio[B].xrdr(trade_date, event_2.bonus, event_2.increase, event_2.dividend)
+            event_list = Xrdr.get(self.A, trade_date)
+            for event in event_list:
+                # print(event)
+                Data.update_factor(event)
+                Person.investment.profolio[event.stock_id].xrdr(trade_date, event.bonus, event.increase, event.dividend)
             data = Data.get(trade_date)
             latest_data = data
             if not data.empty:
-                signal = strategy.run(trade_date, data[f"{A}_xrdr"], data[f"{B}_xrdr"])
+                signal = strategy.run(trade_date, data[f"{self.A}_xrdr"], data[f"{self.B}_xrdr"])
                 signal2 = strategy_benchamark.run(trade_date)
                 pair_trade = Person.trade(signal, trade_date, data)
                 bench_trade = Mark.trade(signal2, trade_date, data)
                 bench_trade2 = Mark2.trade(signal2, trade_date, data)
                 for order in pair_trade:
                     print(order)
+                #print("SZ002460")
+                for order in bench_trade:
+                    print(order)
+                #print("SZ002497")
+                for order in bench_trade2:
+                    print(order)
                 report1.add_trade(pair_trade)
                 report2.add_trade(bench_trade)
                 report3.add_trade(bench_trade2)
-                Mark.update_price(trade_date, data)
-                Mark2.update_price(trade_date, data)
-                Person.update_price(trade_date, data)
+                #Mark.update_price(trade_date, data)
+                #Mark2.update_price(trade_date, data)
+                #Person.update_price(trade_date, data)
         end_signal = -1
         pair_trade = Person.trade(end_signal, trade_date, latest_data)
         bench_trade = Mark.trade(end_signal, trade_date, latest_data)
@@ -150,17 +161,14 @@ class unittest_capital(unittest.TestCase):
         for order in pair_trade:
             print(order)
         #print("SZ002460")
-        #for order in bench_trade:
-        #    print(order)
+        for order in bench_trade:
+            print(order)
         #print("SZ002497")
-        #for order in bench_trade2:
-        #    print(order)
+        for order in bench_trade2:
+            print(order)
         report1.add_trade(pair_trade)
         report2.add_trade(bench_trade)
         report3.add_trade(bench_trade2)
-        Person.update_price(trade_date, data)
-        Mark.update_price(trade_date, data)
-        Mark2.update_price(trade_date, data)
         df = Person.investment.get_hist_value()
         df2 = Mark.investment.get_hist_value()
         df3 = Mark2.investment.get_hist_value()
@@ -188,57 +196,58 @@ class unittest_capital(unittest.TestCase):
         plt.show()
 
 
-    @unittest.skip("XRDR")
+    @unittest.skip("Xrdr Event")
     def test_xrdr_event(self):
-        head = mysqlHeader(acc='stock', pw='stock2020', db='stock', host='115.159.1.221')
-        A = 'SZ002460'
-        B = 'SZ002497'
         start = '2019-01-03'
         end = '2021-03-01'
-        Data = EventEngine(head, start, end)
-        Data.add_asset(A)
-        Data.add_asset(B)
+        Data = EventEngine(self.head, start, end)
+        Data._add_asset(self.A)
+        Data._add_asset(self.B)
         Data.get_data(start=start, end=end)
-        calendar = Kalendar((2019,1,3), (2021,3,1))
+        calendar = Kalendar('2019-1-3', '2021-3-1')
         for trade_date in calendar:
-            data = Data.get(A, trade_date)
-            if data:
-                print(data)
-            #break
+            data = Data.get(self.A, trade_date)
+            for event in data:
+                print(event)
 
     @unittest.skip("xrdr")
     def test_xrdr(self):
-        A = 'SZ002460'
-        start = '2019-01-04'
-        end = '2021-03-01'
+        start = '2019-07-20'
+        end = '2019-07-30'
         Data = StockData(self.head, start, end)
-        Data.Config(**{'asset': [A,]})
+        Data.Config(**{'asset': [self.A,]})
         Xrdr = EventEngine(self.head, start, end)
-        Xrdr._add_asset(A)
+        Xrdr._add_asset(self.A)
         Xrdr.get_data(start=start, end=end)
-        strategy_benchamark = BenchMarkStrategy(A, start, end)
-        Mark = Benchmark('Mark', strategy_benchamark, 100000.0, A)
-        Mark2 = Benchmark('Mark2', strategy_benchamark, 100000.0, A)
-        calendar = Kalendar('2019-1-3', '2021-3-1')
-        latest_data = None
-        end_date = None
+        strategy_benchamark = BenchMarkStrategy(self.A, start, end)
+        Mark = Benchmark('Mark', strategy_benchamark, 100000.0, self.A)
+        calendar = Kalendar(start, end)
         for trade_date in calendar:
-            end_date = trade_date
-            event = Xrdr.get(A, trade_date)
-            if event:
+            event_list = Xrdr.get(self.A, trade_date)
+            for event in event_list:
+                print(event)
                 Data.update_factor(event)
+                data = Data.get(trade_date)
+                Mark.trade(3, trade_date, data, event)
             data = Data.get(trade_date)
-            latest_data = data
             if not data.empty:
-                signal2 = strategy_benchamark.run(trade_date)
-                bench_trade = Mark.trade(signal2, trade_date, data)
-                Mark.update_price(trade_date, data)
-        bench_trade = Mark.trade(-1, trade_date, latest_data)
-        Mark.update_price(trade_date, data)
+                signal = strategy_benchamark.run(trade_date)
+                Mark.trade(signal, trade_date, data, None)
+                strategy_benchamark.built(True)
+            print(Mark.investment)
         df2 = Mark.investment.get_hist_value()
-        # print(df)
         plt.plot(df2)
         plt.show()
+        """
+        Trade date, close price , Volume    , 
+        2019-07-22, 21.88       , 4600  ,   100648   
+        2019-07-23, 22          , 4600  ,   101200
+        2019-07-24, 22.31       ,4600   ,   102626
+        2019-07-25, 22.28       ,4600   ,   102488
+        2019-07-26, 22.34, XRDR ,4600   ,   102764
+        2019-07-29, 22.2        ,4600   ,   102120
+        2019-07-30, 22.27       ,0      ,   102442
+        """
 
     @unittest.skip("Report")
     def test_report(self):
@@ -247,9 +256,8 @@ class unittest_capital(unittest.TestCase):
         end = '2021-03-01'
         Data = StockData(self.head, start, end)
         Data.Config(**{'asset': [A, ]})
-        data = Data.data
         report = Report('Pair Trading')
-        report.get_data(data)
+        report.get_data(Data.data)
         report_data = report.run()
         report_text = (
             f"Total Return: {'%.1f%%' % (100 * report_data['total_return'])}\n"

@@ -9,15 +9,21 @@ class FeeBase(object):
 
 class CommissionBase(FeeBase):
     def __init__(self) -> None:
-        super().__init__(0.003)
+        super().__init__(0.0003)
 
 
 class StockCommission(CommissionBase):
+    """
+    佣金：0.0003或5元
+    """
     def __call__(self, vol: float) -> float:
         return max(round(abs(vol * self.ratio), 2), 5.0)
 
 
 class TransferFee(FeeBase):
+    """
+    过户费：0.00002
+    """
     def __init__(self) -> None:
         super().__init__(0.00002)
 
@@ -26,6 +32,9 @@ class TransferFee(FeeBase):
 
 
 class StampTax(FeeBase):
+    """
+    印花税：0.001
+    """
     def __init__(self) -> None:
         super().__init__(0.001)
 
@@ -57,7 +66,8 @@ class AssetBase(object):
         commission = self.Comm(vol)
         # settle
         self.cash -= vol
-        self.cash -= (fee + commission)
+        self.cash -= fee
+        self.cash -= commission
         self.price = price
         return TradeOrder(self.stock_code, trade_date, 1, price, volume)
 
@@ -82,17 +92,18 @@ class AssetBase(object):
         return TradeOrder(self.stock_code, trade_date, -1, price, volume)
 
     def xrdr(self, trade_date, bonus:float, increase: float, dividend: float) -> TradeOrder:
-        self.price -= bonus / 10
-        self.cash += 0.8 * bonus / 10
-        self.volume *= 1 + increase / 10 + dividend / 10
+        self.price -= dividend / 10
+        self.cash += self.volume * dividend / 10
+        self.volume *= 1 + increase / 10 + bonus / 10
         return TradeOrder(self.stock_code, trade_date, -1, 0.0, 0)
 
     @property
     def value(self):
-        return self.volume * self.price + self.cash
+        result = self.volume * self.price + self.cash
+        return result
 
     def __str__(self):
-        text = f"Asset {self.stock_code}, volume {self.volume}, currency {'%.2f' % self.cash}"
+        text = f"Asset {self.stock_code}, volume {self.volume}, cash {'%.2f' % self.cash}"
         return text
 
 

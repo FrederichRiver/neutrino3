@@ -65,9 +65,10 @@ def cointegration_check(df_a: Series, df_b: Series):
 # 7. 回测评估
 
 class StrategyBase(metaclass=ABCMeta):
-    def __init__(self, from_date, to_date ) -> None:
+    def __init__(self, from_date: str, to_date: str ) -> None:
         self.from_date = from_date
         self.to_date = to_date
+        self.signal = 1
 
     def isTradeStart(self, trade_date):
         return (self.from_date == trade_date.strftime('%Y-%m-%d'))
@@ -75,6 +76,9 @@ class StrategyBase(metaclass=ABCMeta):
     def isTradeEnd(self, trade_date):
         return (self.to_date == trade_date.strftime('%Y-%m-%d'))
 
+    def built(self, signal):
+        if signal:
+            self.signal = 0
     # trade with dividend, increase... accept signal=-2
 
 class PairTradeStrategy(StrategyBase):
@@ -119,7 +123,6 @@ class PairTradeStrategy(StrategyBase):
             return 2
         else:
             return 0
-
 
 class PairTradeStrategy2(StrategyBase):
     def __init__(self, stock_1: str, stock_2: str, from_date, to_date ) -> None:
@@ -183,26 +186,6 @@ class BenchMarkStrategy(StrategyBase):
     def run(self,trade_date):
         if self.isTradeEnd(trade_date):
             return -1
-        elif self.isTradeStart(trade_date):
-            return 1
         else:
-            return 0
+            return self.signal
 
-
-class BackTest(object):
-    def __init__(self, strategy: StrategyBase) -> None:
-        super().__init__()
-        self.trade = []
-        self.strategy = strategy
-        self.init_cash = 0.0
-        self.annualized_return = 0.0
-        self.total_return = 0.0
-        self.max_draw = 0.0
-        self.period = self._time_delta()
-
-    def get_trade_data(self, trade: list):
-        self.trade = trade
-
-    def _time_delta(self) -> timedelta:
-        self.period = datetime.strptime(self.strategy.to_date, '%Y-%m-%d') - datetime.strptime(self.strategy.from_date, '%Y-%m-%d')
-        return self.period
