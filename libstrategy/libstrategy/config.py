@@ -7,11 +7,13 @@ import logging
 import multiprocessing
 from pathlib import Path
 
-
+# 最大CPU数量
 NCPUS = max(psutil.cpu_count() - 2, 1)
+# 定义国家代码
 REG_CN = "cn"
 REG_US = "us"
 
+# 参数配置
 _default_config = {
     # data provider config
     "calendar_provider": "LocalCalendarProvider",

@@ -1,9 +1,12 @@
 from abc import ABC
+from typing import Tuple
 import numpy as np
 import pandas as pd
 from libmysql_utils.mysql8 import mysqlHeader, mysqlQuery
 from libbasemodel.form import formStockManager
 from pandas import DataFrame
+from sqlalchemy.sql.expression import table
+from .event import XrdrEvent
 
 """
 1.从MySQL查询数据
@@ -12,21 +15,25 @@ from pandas import DataFrame
 """
 
 class DataBase(mysqlQuery):
+    """
+    用于查询数据的基类
+    """
     def __init__(self, header: mysqlHeader, from_date: str, end_date: str) -> None:
         super().__init__(header)
         self.pool = []
         self.data = DataFrame()
         self.from_date = from_date
         self.end_date = end_date
-        self.__stock_list = []
+        self._stock_list = []
         self.dataline = DataFrame()
+        self.prev_date = None
         self.prev_dataline = DataFrame()
         self.factor = {}
 
     def Config(self, **args):
         raise NotImplementedError
 
-    def _add_asset(self, stock_code):
+    def _add_asset(self, stock_code: str):
         """
         param: stock_code is list or str type
         """
@@ -36,42 +43,22 @@ class DataBase(mysqlQuery):
             self.pool.extend(stock_code)
 
     @property
-    def asset_list(self):
+    def asset_list(self) -> list:
+        """
+        提供所有的股票代码供查询
+        """
         query_stock_code = self.session.query(formStockManager.stock_code).filter_by(flag='t').all()
         df = pd.DataFrame.from_dict(query_stock_code)
         df.columns = ['stock_code']
-        self.__stock_list = df['stock_code'].tolist()
+        self._stock_list = df['stock_code'].tolist()
         # should test if stock list is null
+        return self._stock_list
 
     def isStock(self, stock_code: str) -> bool:
-        return stock_code in self.__stock_list
-
-
-
-class EventBase(ABC):
-    def __init__(self) -> None:
-        self.id = 0
-        self._timestamp = None
-        self.dataline = {}
-from enum import Enum
-
-class EventType(Enum):
-    XRDR = 1
-
-
-class XrdrEvent(EventBase):
-    def __init__(self, date_time, dataline) -> None:
-        super().__init__()
-        self.id = 1
-        self._timestamp = date_time
-        self.stock_id = dataline['stock_code']
-        self.bonus= dataline['bonus']
-        self.increase = dataline['increase']
-        self.dividend = dataline['dividend']
-
-    def __str__(self) -> str:
-        text = f"{self.stock_id} Xrdr on {self._timestamp}, bonus {self.bonus}, increase {self.increase}, dividend {self.dividend}."
-        return text
+        """
+        判断是否是真实存在的股票代码
+        """
+        return stock_code in self._stock_list
 
 
 class StockData(DataBase):
@@ -96,7 +83,7 @@ class StockData(DataBase):
             self._add_asset(asset)
         self._update()
 
-    def get_price(self, stock_code: str, start='', end='') -> DataFrame:
+    def _get_data(self, stock_code: str, start='', end='') -> DataFrame:
         query_column = 'trade_date,close_price,prev_close_price'
         def_column = ['trade_date', f"{stock_code}", f"{stock_code}_prev"]
         if start or end:
@@ -112,16 +99,10 @@ class StockData(DataBase):
             df = DataFrame()
         return df
 
-    def get_log_price(self, stock_code: str, start='', end='') -> DataFrame:
-        df = self.get_price(stock_code, start, end)
-        if not df.empty:
-            df[stock_code].apply(np.log)
-        return df
-
-    def _update(self, data_type='log'):
+    def _update(self):
         for stock in self.pool:
             if stock not in self.data.index:
-                df = self.get_price(stock_code=stock, start=self.from_date, end=self.end_date)
+                df = self._get_data(stock_code=stock, start=self.from_date, end=self.end_date)
                 self.data = pd.concat([self.data, df], axis=1)
             self.factor[stock] = 1.0
         self.data.dropna(axis=0, how='any', inplace=True)
@@ -129,45 +110,70 @@ class StockData(DataBase):
     def __iter__(self):
         return self.data.iterrows()
 
-    def get(self, query_date: pd.Timestamp):
+    def get(self, query_date: pd.Timestamp) -> DataFrame:
         if query_date in self.data.index:
+            self.prev_date = query_date
             self.prev_dataline = self.dataline
             self.dataline = self.data.loc[query_date]
             for stock_code in self.pool:
                 self.dataline[f"{stock_code}_xrdr"] = self.dataline[f"{stock_code}_xrdr"] * self.factor[stock_code]
         return self.dataline
 
-    def update_factor(self, Xrdr_event: XrdrEvent):
+    def update_factor(self, Xrdr_event: XrdrEvent) -> float:
+        """
+        根据XRDR事件进行复权因子更新。
+        """
         stock_id = Xrdr_event.stock_id
         price = self.prev_dataline[f"{stock_id}_prev"]
         self.factor[stock_id] = (1 - Xrdr_event.dividend / (10 * price)) / (1 + Xrdr_event.increase / 10 + Xrdr_event.bonus / 10)
         return self.factor[stock_id]
 
 class EventEngine(DataBase):
+    table_name = 'stock_interest'
     # query data
     # event, return (x1, x2, x3)，分红，送股，转股
-    # 
-    def get_data(self, start='', end=''):
-        self.data = {}
-        query_column = 'float_bonus,float_increase,float_dividend,xrdr_date,char_stock_code'
-        for stock_code in self.pool:
-            if start or end:
-                df = self.condition_select('stock_interest', query_column, f"char_stock_code='{stock_code}' AND (xrdr_date BETWEEN '{start}' AND '{end}')")
-            else:
-                df = self.select_values('stock_interest', query_column)
-            if not df.empty:
-                def_column = ['bonus', 'increase', 'dividend', 'xrdr_date', 'stock_code']
-                df.columns = def_column
-                df['xrdr_date'] = pd.to_datetime(df['xrdr_date'])
-                df.set_index('xrdr_date', inplace=True)
-            else:
-                df = DataFrame()
-            self.data[stock_code] = df
 
-    def get(self, stock_code, query_date: pd.Timestamp) -> list:
+    # API
+    def Config(self, **args):
+        """
+        param: {'asset': [stock_1, stock_2, ...]}
+        """
+        asset_list = args.get('asset', [])
+        for asset in asset_list:
+            self._add_asset(asset)
+        self.load()
+
+    def _reset(self):
+        self.data = {}
+
+    def load(self):
+        self._reset()
+        for stock in self.pool:
+            df = self._get_data(stock_code=stock, start=self.from_date, end=self.end_date)
+            self.data[stock] = df
+
+    def _get_data(self, stock_code: str, start='', end='') -> DataFrame:
+        query_column = 'float_bonus,float_increase,float_dividend,xrdr_date,char_stock_code'
+        if start or end:
+            df = self.condition_select(self.table_name, query_column, f"char_stock_code='{stock_code}' AND (xrdr_date BETWEEN '{start}' AND '{end}')")
+        else:
+            df = self.select_values(self.table_name, query_column)
+        if not df.empty:
+            def_column = ['bonus', 'increase', 'dividend', 'xrdr_date', 'stock_code']
+            df.columns = def_column
+            df['xrdr_date'] = pd.to_datetime(df['xrdr_date'])
+            df.set_index('xrdr_date', inplace=True)
+        else:
+            df = DataFrame()
+        return df
+
+
+    # API
+    def get(self, query_date: pd.Timestamp) -> Tuple[XrdrEvent, XrdrEvent]:
         event_list = []
         for stock_code in self.pool:
-            if query_date in self.data[stock_code].index:
-                self.dataline = self.data[stock_code].loc[query_date]
-                event_list.append(XrdrEvent(query_date, self.dataline))
+            if not self.data[stock_code].empty:
+                if query_date in self.data[stock_code].index:
+                    self.dataline = self.data[stock_code].loc[query_date]
+                    event_list.append(XrdrEvent(query_date, self.dataline))
         return event_list

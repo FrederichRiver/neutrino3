@@ -60,6 +60,10 @@ class Investment(object):
     def inProfolio(self, stock_id: str) -> bool:
         return stock_id in self.profolio.keys()
 
+    @property
+    def pool(self) -> list:
+        return self.profolio.keys()
+
     def buy_stock(self, stock_id: str, trade_date, trade_volume: int, trade_price: float):
         # Need to check cash
         if not self.inProfolio(stock_id):
@@ -128,50 +132,3 @@ class Investment(object):
         return list(set(self.profolio.keys()))
 
 
-    def get_stock_price(self, code):
-        return self.profolio[code].price
-
-    def get_stock_volume(self, code):
-        return self.profolio[code].volume
-
-    def get_stock_count(self, code):
-        return self.profolio[code].count
-
-    def get_stock_weight(self, code):
-        return self.profolio[code].weight
-
-    def get_stock_amount_dict(self) -> dict:
-        """generate stock amount dict {stock_id : amount of stock} """
-        d = {}
-        stock_list = self.get_stock_list()
-        for stock_code in stock_list:
-            d[stock_code] = self.get_stock_amount(code=stock_code)
-        return d
-
-    def get_stock_weight_dict(self, only_stock=False):
-        """get_stock_weight_dict
-        generate stock weight fict {stock_id : value weight of stock in the investment}
-        it is meaningful in the beginning or the end of each trade date
-
-        :param only_stock: If only_stock=True, the weight of each stock in total stock will be returned
-                           If only_stock=False, the weight of each stock in total assets(stock + cash) will be returned
-        """
-        if only_stock:
-            investment_value = self.calculate_stock_value()
-        else:
-            investment_value = self.calculate_value()
-        d = {}
-        stock_list = self.get_stock_list()
-        for stock_code in stock_list:
-            d[stock_code] = self.profolio[stock_code].amount * self.profolio[stock_code].price / investment_value
-        return d
-
-    def add_count_all(self):
-        stock_list = self.get_stock_list()
-        for code in stock_list:
-            self.profolio[code].count += 1
-
-    def update_weight_all(self):
-        weight_dict = self.get_stock_weight_dict()
-        for stock_code, weight in weight_dict.items():
-            self.update_stock_weight(stock_code, weight)

@@ -84,7 +84,7 @@ class AssetBase(object):
         self.price = price
         return TradeOrder(self.stock_code, trade_date, -1, price, volume)
 
-    def settle(self, trade_date, price: float) -> TradeOrder:
+    def settle(self, trade_date: str, price: float) -> TradeOrder:
         volume = self.volume
         self.cash += price * volume
         self.volume = 0
@@ -94,7 +94,7 @@ class AssetBase(object):
     def xrdr(self, trade_date, bonus:float, increase: float, dividend: float) -> TradeOrder:
         self.price -= dividend / 10
         self.cash += self.volume * dividend / 10
-        self.volume *= 1 + increase / 10 + bonus / 10
+        self.volume *= (1 + increase / 10 + bonus / 10)
         return TradeOrder(self.stock_code, trade_date, -1, 0.0, 0)
 
     @property
