@@ -128,6 +128,7 @@ class StockData(DataBase):
         self.factor[stock_id] = (1 - Xrdr_event.dividend / (10 * price)) / (1 + Xrdr_event.increase / 10 + Xrdr_event.bonus / 10)
         return self.factor[stock_id]
 
+
 class EventEngine(DataBase):
     table_name = 'stock_interest'
     # query data

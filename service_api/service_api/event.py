@@ -7,6 +7,7 @@ from libutils.utils import read_url
 __all__ = [
     'service_init_stock_table',
     'service_init_index_table',
+    'service_init_hk_stock_table',
     'service_flag_stock',
     'service_download_stock_data',
     'service_download_index_data',
@@ -39,6 +40,18 @@ def service_init_stock_table():
 
 
 def service_init_index_table():
+    """
+    Init database from a blank stock list.
+    """
+    from libbasemodel.stock_manager import EventTradeDataManager
+    from libbasemodel.stock_model import StockList
+    stock_list = StockList(GLOBAL_HEADER)._get_index()
+    event = EventTradeDataManager(GLOBAL_HEADER)
+    for stock_code in stock_list:
+        event.create_stock_table(stock_code)
+
+
+def service_init_hk_stock_table():
     """
     Init database from a blank stock list.
     """

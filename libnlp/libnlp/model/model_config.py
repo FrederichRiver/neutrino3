@@ -1,4 +1,4 @@
-#!/usr/bin/python38
+#!/usr/bin/python3
 import argparse
 from transformers import BertConfig
 
@@ -19,15 +19,15 @@ train_config = {
     "task_name": None,
     "model_type": None,
     # Directory manage
-    "data_dir": '/home/friederich/Documents/bert_model/data/cner/',
-    "model_name_or_path": '/home/friederich/Documents/bert_model/output/',
-    "output_dir": '/home/friederich/Documents/bert_model/output/',
-    "cache_dir": '/home/friederich/Documents/bert_model/cache/',
+    "data_dir": '/home/fred/Documents/dev/bert_model/data/cner/',
+    "model_name_or_path": '/home/fred/Documents/dev/bert_model/output/',
+    "output_dir": '/home/fred/Documents/dev/bert_model/output',
+    "cache_dir": '/home/fred/Documents/dev/bert_model/cache/',
     # "data_dir": '/home/fred/bert_model/data/cner/',
     # "model_name_or_path": '/home/fred/bert_model/output/',
     # "output_dir": '/home/fred/bert_model/output/',
     # "cache_dir": '/home/fred/bert_model/cache/',
-    "batch_size": 10,
+    "batch_size": 20,
     "markup": 'bios',
     "loss_type": 'ce',
     "config_name": "",
@@ -48,7 +48,7 @@ train_config = {
     "per_gpu_eval_batch_size": 8,
     # learning rate management
     "gradient_accumulation_steps": 1,
-    "learning_rate": 5e-5,
+    "learning_rate": 1e-5,
     "crf_learning_rate": 5e-5,
     "weight_decay": 0.01,
     "adam_epsilon": 1e-8,

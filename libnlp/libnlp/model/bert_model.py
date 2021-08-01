@@ -1,10 +1,11 @@
-#!/usr/bin/python38
-from transformers import BertModel
-from transformers.configuration_bert import BertConfig
-from transformers.tokenization_bert import BertTokenizer
+#!/usr/bin/python3
+from transformers import BertModel, BertConfig, BertTokenizer
 from libnlp.model.crf import CRF
 from torch import nn
 
+
+Pre_Trained_Model_Path = '/home/fred/Documents/dev/bert_model'
+Data_Dir = '/home/fred/Documents/dev/bert_model/train_data/cner/'
 
 class CNerTokenizer(BertTokenizer):
     def tokenize(self, text: list) -> list:
