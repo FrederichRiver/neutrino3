@@ -1,4 +1,4 @@
-#!/usr/bin/python38
+#!/usr/bin/python3
 
 
 from collections import OrderedDict

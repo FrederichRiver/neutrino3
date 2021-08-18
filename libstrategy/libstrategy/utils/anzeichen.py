@@ -21,10 +21,11 @@ class SignalBase(metaclass=ABCMeta):
 
 class SignalPairTrade(SignalBase):
     """
-    start: signal = 0
-    long A short B: signal = 1
-    long B short A: signal = 2
-    end: signal = -1
+    signal value
+    0: start
+    1: long A short B
+    2: long B short A
+    -1: end
     """
     def __init__(self) -> None:
         super().__init__()

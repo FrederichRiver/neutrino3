@@ -10,6 +10,7 @@ from libstrategy.utils.kalendar import Kalendar
 from libstrategy.utils.report import Report
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 class unittest_capital(unittest.TestCase):
     def setUp(self):
@@ -114,26 +115,40 @@ class unittest_capital(unittest.TestCase):
 
     #@unittest.skip("Strategy")
     def test_pair_trade(self):
+        hist = '2018-01-01'
+        pre_run = '2018-06-01'
         start = '2019-01-04'
         end = '2021-03-01'
         #end = '2019-02-01'
         pool = [self.A, self.B]
+        histData = StockData(self.head, hist, pre_run)
+        histData.Config(**{'asset': pool})
+        df = histData.data[[f"{self.A}_xrdr", f"{self.B}_xrdr"]]
+        df.columns = ['A', 'B']
+        strategy = PairTradeStrategy(self.A, self.B, start, end)
+        strategy.init_param(df)
+        print(strategy.KF.mean)
+        print(strategy.KF.cov)
+        preData = StockData(self.head, pre_run, start)
+        preData.Config(**{'asset': pool})
+        calendar1 = Kalendar(pre_run, start)
+        for trade_date in calendar1:
+            data = preData.get(trade_date)
+            strategy.update_param(data[f"{self.A}_xrdr"], data[f"{self.B}_xrdr"])
         Data = StockData(self.head, start, end)
         Data.Config(**{'asset': [self.A, self.B]})
         Xrdr = EventEngine(self.head, start, end)
         Xrdr.Config(**{'asset': pool})
         #_, beta, mean, std = cointegration_check(Data.data[self.A], Data.data[self.B])
-        beta = 5.60
-        mean = -8.07
-        std = 8.22
+        
         #print(beta, mean, std)
         #print(beta, mean, std)
-        strategy = PairTradeStrategy(self.A, self.B, start, end)
+        
         strategy_benchamark = BenchMarkStrategy(self.A, start, end)
         Mark = Benchmark('Mark', strategy_benchamark, 100000.0, self.A)
         Mark2 = Benchmark('Mark2', strategy_benchamark, 100000.0, self.B)
-        Person = PairTrading('John',strategy, 100000.0, self.A, self.B, beta)
-        strategy.set_threshold(**{"high":mean + std, "low": mean - std, "beta": beta, "alpha": mean})
+        Person = PairTrading('John',strategy, 100000.0, self.A, self.B, 0)
+        # strategy.set_threshold(**{"high":mean + std, "low": mean - std, "beta": beta, "alpha": mean})
         calendar = Kalendar(start, end)
         report1 = Report('Pair Trading')
         report2 = Report('SZ002460')
@@ -147,7 +162,7 @@ class unittest_capital(unittest.TestCase):
             data = Data.get(trade_date)
             if not data.empty:
                 print(data)
-                signal = strategy.run(trade_date, data[f"{self.A}_xrdr"], data[f"{self.B}_xrdr"])
+                signal = strategy.run(trade_date, float(data[f"{self.A}_xrdr"]), float(data[f"{self.B}_xrdr"]))
                 signal2 = strategy_benchamark.run(trade_date)
                 pair_trade = Person.trade(signal, trade_date, data)
                 bench_trade = Mark.trade(signal2, trade_date, data)

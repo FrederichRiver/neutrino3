@@ -1,4 +1,4 @@
-#!/usr/bin/python38
+#!/usr/bin/python3
 from sqlalchemy import Column, String, Integer, Float, Date, BLOB
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -595,6 +595,14 @@ class formCashFlow(formFinanceTemplate):
 
 
 """
+
+
+class formCapitalRelativeMatrix(Base):
+    __tablename__ = 'capital_relative_matrix'
+    stock_1 = Column(String(10), primary_key=True)
+    stock_2 = Column(String(10), primary_key=True)
+    relative = Column(Float, comment='')
+    update_date = Column(Date, comment='')
 
 if __name__ == "__main__":
     x = [f"c{i+1}" for i in range(90)]

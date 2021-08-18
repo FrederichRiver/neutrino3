@@ -106,8 +106,8 @@ class EventStockData(StockBase):
             df['factor'] = 1.0
             for index, row in df.iterrows():
                 if (row['dividend'] + row['increase'] + row['bonus']) > 0:
-                    df.loc[index, 'prev_close_price'] = adjust_factor(row['prev'], row['dividend'], row['increase'], row['bonus'])
-                    df.loc[index, 'factor'] = row['prev'] / df.loc[index, 'prev_close_price']
+                    tmp = adjust_factor(row['prev'], row['dividend'],  row['bonus'], row['increase'])
+                    df.loc[index, 'factor'] = row['prev'] / tmp
             df['adjust_factor'] = 1.0
             cum_factor = 1.0
             for index, row in df.iterrows():
@@ -118,7 +118,7 @@ class EventStockData(StockBase):
             df = df_stock
             df['adjust_factor'] = 1.0
         result = DataFrame(df, columns=['adjust_factor'], index=df.index)
-        result['trade_date'] = df.index
+        # result['trade_date'] = df.index
         return result
 
     @method
@@ -133,11 +133,9 @@ class EventStockData(StockBase):
 
 def adjust_factor(x, div, b, i):
     result = (x - div/10) / (1 + b/10 + i/10)
+    # result = x / (1 + b/10 + i/10)
     return result
 
 
 if __name__ == "__main__":
-    from libmysql_utils.mysql8 import LOCAL_HEADER
-    event = EventStockData(LOCAL_HEADER)
-    df = event.adjust_factor('SH600000')
-    event.record_factor('SH600000', df)
+    pass

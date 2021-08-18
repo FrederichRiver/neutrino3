@@ -15,6 +15,7 @@ from pandas import DataFrame
 from requests.models import HTTPError
 from libbasemodel.form import formStockManager
 from libbasemodel.cninfo import cninfoSpider
+from sqlalchemy import exc
 
 
 """
@@ -278,6 +279,9 @@ class StockList(cninfoSpider, StockBase):
         self.j2sql.load_table('stock_manager')
 
     def _get_stock_list_data(self, url: str) -> DataFrame:
+        """
+        Get stock list from url: 'http://www.cninfo.com.cn/new/data/szse_stock.json'
+        """
         # result -> http.response
         result = requests.get(url, self.http_header)
         # jr -> json like data
@@ -360,7 +364,7 @@ class StockList(cninfoSpider, StockBase):
 
     @staticmethod
     def _get_index():
-        index1 = [f"SH000{str(i).zfill(3)}" for i in range(1000)]
+        index1 = [f"SH000{str(i).zfill(3)}" for i in range(1,1000)]
         index2 = [f"SH950{str(i).zfill(3)}" for i in range(1000)]
         index3 = [f"SZ399{str(i).zfill(3)}" for i in range(1000)]
         stock_list = index1 + index2 + index3
@@ -394,6 +398,48 @@ class StockList(cninfoSpider, StockBase):
     def _get_fund():
         pass
 
+ 
+
+class IndexList(eastmoneySpider, StockBase):
+    def __init__(self, header: mysqlHeader) -> None:
+        eastmoneySpider.__init__(self)
+        StockBase.__init__(self, header)
+        self.args = {
+            "SHIndex": {
+                "url": "https://48.push2.eastmoney.com/api/qt/clist/get?cb=jQuery112409898063226320066_1628342581818&pn=2&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&fid=f3&fs=m:1+s:2&fields=f12,f14&_=1628342581819",
+                "total": 12
+            },
+            "SZIndex": {
+                "url": "https://48.push2.eastmoney.com/api/qt/clist/get?cb=jQuery112409898063226320066_1628342581820&pn=2&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&fid=f3&fs=m:0+t:5&fields=f12,f14&_=1628342582245",
+                "total": 27
+            },
+        }
+
+    def get_index_name(self, param: dict):
+        """
+        url = https://48.push2.eastmoney.com/api/qt/clist/get?cb=jQuery112409898063226320066_1628342581818&pn=2&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&fid=f3&fs=m:1+s:2&fields=f12,f14&_=1628342581819
+        url2 = https://48.push2.eastmoney.com/api/qt/clist/get?cb=jQuery112409898063226320066_1628342581820&pn=2&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&fid=f3&fs=m:0+t:5&fields=f12,f14&_=1628342582245
+        """
+        raw_url = param["url"]
+        # raw_url = "https://48.push2.eastmoney.com/api/qt/clist/get?cb=jQuery112409898063226320066_1628342581818&pn={0}&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&fid=f3&fs=m:1+s:2&fields=f12,f14&_=1628342581819"
+        # raw_url = "https://48.push2.eastmoney.com/api/qt/clist/get?cb=jQuery112409898063226320066_1628342581820&pn={0}&pz=20&po=1&np=1&ut=bd1d9ddb04089700cf9c27f6f7426281&fltt=2&invt=2&fid=f3&fs=m:0+t:5&fields=f12,f14&_=1628342582245"
+        for i in range(1, param["total"]):
+            url = raw_url.format(i)
+            response = requests.get(url, self.http_header)
+            json_content = re.search('\((.*)\)', response.text)
+            # r是对json_content的解析结果，转换为json对象
+            r = eval(json_content.group(1))
+            # 取其中的核心代码内容
+            code_list = r["data"]["diff"]
+            for item in code_list:
+                # print(f"SH{item['f12']}:{item['f14']}")
+                name = item["f14"]
+                code = f'SZ{item["f12"]}'
+                sql = f"UPDATE stock_manager set stock_name='{name}' where stock_code='{code}'"
+                try:
+                    self.engine.execute(sql)
+                except Exception:
+                    pass
 
 class USStockList(eastmoneySpider, StockBase):
     def __init__(self, header: mysqlHeader) -> None:
@@ -544,13 +590,6 @@ def resolve_stock_list(stock_type='stock'):
         stock_list = []
     return stock_list
 
-
 if __name__ == "__main__":
-    from libmysql_utils.mysql8 import LOCAL_HEADER
-    event = USStockList(LOCAL_HEADER)
-    # text = ['安捷伦(A)', '美国铝业(AA)', 'Alcoa...(AA_)', 'Alcoa...(AA.)', 'Alcoa...(AA_B)', 'Alcoa...(AA.B)', 'Advan...(AAAP)', 'Perth...(AAAU)', '雅虎(AABA)', 'AACHo...(AAC)']
-    result = event.get_us_stock_list()
-    # result = event.resolve_us_stock_list(text)
-    for stock_code in result:
-        print(stock_code)
-        event.record_us_stock(stock_code)
+    pass
+    

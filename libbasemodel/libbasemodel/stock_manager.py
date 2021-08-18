@@ -11,7 +11,7 @@ from dev_global.path import CONF_FILE
 from libutils.log import Log, method
 from libutils.utils import read_url, drop_space
 from .stock_model import StockBase
-from .form import formStockManager
+from libmysql_utils.orm.form import formStockManager
 
 
 class EventTradeDataManager(StockBase):

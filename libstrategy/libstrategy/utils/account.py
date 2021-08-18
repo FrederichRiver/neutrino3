@@ -4,7 +4,7 @@ import copy
 
 from .investment import Investment
 from .order import TradeOrder
-from libstrategy.data_engine.data_engine import EventEngine, XrdrEvent
+from ..data_engine.data_engine import EventEngine, XrdrEvent
 from math import ceil
 import pandas as pd
 
@@ -31,6 +31,7 @@ class Account(metaclass=ABCMeta):
 
     def xrdr(self, trade_date, event: XrdrEvent):
         self.investment.profolio[event.stock_id].xrdr(trade_date, event.bonus, event.increase, event.dividend)
+
 
 class Benchmark(Account):
     def __init__(self, name: str, strategy, init_cash: float, stock_id: str):

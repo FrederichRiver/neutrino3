@@ -1,2 +1,2 @@
-__all__ = ['mysql8', ]
+__all__ = ['mysql8', 'orm']
 __version__ = (2, 4, 13)

@@ -66,14 +66,14 @@ class Kalman(object):
         self.mean = 0.0
         self.cov = 0.0
 
-    def init_param(self, data: Series):
+    def init_param(self, data: DataFrame):
         """
         初始化卡尔曼滤波过程
         """
         np.random.seed(0)
         self.kf.em(data)
-        mean, cov = self.kf.filter(data)
-        return mean, cov
+        self.mean, self.cov = self.kf.filter(data)
+        return self.mean, self.cov
 
     def update(self, y, x) -> np.ndarray:
         """
@@ -156,17 +156,24 @@ class PairTradeStrategy(StrategyBase):
         self.alpha = alpha
         self.beta = beta
 
-    def update_param(self):
+    def init_param(self, df):
+        observe = np.vstack(
+            (np.ones(len(df)), df.loc[:, 'B'].values)
+        ).T
+        Shape = observe.shape
+        observe = observe.reshape(Shape[0], 1, Shape[1])
+        self.KF = Kalman(observe)
+        self.KF.init_param(df['B'])
+
+    def update_param(self, y: float, x: float):
         # to Do
         # Kalman Filter method.
-        self.alpha = 0
-        self.beta = 0
-
-    def param_evalue(cls):
-        # to Do
-        # Using KF方法估计参数
-        pass
-        # return 参数
+        self.KF.update(y, x)
+        self.alpha = self.KF.mean[0]
+        self.beta = self.KF.mean[1]
+        self.std = self.KF.cov
+        self._high = self.beta + self.std
+        self._low = self.beta - self.std
 
     def add_trade(self, trade_msg: list):
         self.trade_list.extend(trade_msg)

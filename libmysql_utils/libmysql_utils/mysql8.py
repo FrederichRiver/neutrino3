@@ -4,6 +4,8 @@ This is a library dealing with mysql which is based on sqlalchemy.
 Library support MYSQL version 8.
 Auther: Friederich River
 """
+from abc import ABCMeta
+import abc
 import json
 import datetime
 from typing import Tuple
@@ -22,6 +24,60 @@ __version__ = '4.4.20'
 __all__ = ['mysqlBase', 'mysqlHeader', 'GLOBAL_HEADER']
 
 
+
+class mysqlHeader(object):
+    """ Here defines the parameters passed into mysql engine.
+    """
+
+    def __init__(self, acc, pw, db,
+                 host='localhost', port=3306, charset='utf8'):
+        if not isinstance(acc, str):
+            raise TypeError(f"{acc=} is not correct.")
+        if not isinstance(pw, str):
+            raise TypeError("Password is not correct.")
+        if not isinstance(db, str):
+            raise TypeError(f"{db=} is not correct.")
+        self.account = acc
+        self.password = pw
+        self.database = db
+        self.host = host
+        self.port = port
+        self.charset = 'utf8'
+
+    def __str__(self):
+        return f"<{self.account}@{self.host}:{self.port}>"
+
+
+class mysqlMeta(metaclass=abc.ABCMeta):
+    def __init__(self, header: mysqlHeader):
+        """
+        :param header: Defines the mysql engine parameters.
+        :param engine: is the object returned from create_engine.
+        :param session: contains the cursor object.
+        """
+        self.account = header.account
+        self.host = header.host
+        self.port = header.port
+        self.database = header.database
+        mysql_url = (
+            f"mysql+pymysql://{header.account}:"
+            f"{header.password}"
+            f"@{header.host}:{header.port}"
+            f"/{header.database}")
+        self.engine = create_engine(mysql_url, encoding='utf8', echo=False)
+        s = sessionmaker(bind=self.engine)
+        self.session = s()
+
+    def __str__(self):
+        return f"mysql engine <{self.account}@{self.host}>"
+
+    @property
+    def version(self):
+        """
+        Use for testing. Return mysql version in str format. 
+        """
+        version = self.engine.execute("SELECT VERSION()").fetchone()
+        return version[0]
 
 
 class mysqlBase(object):
@@ -211,29 +267,6 @@ def _drop_all(base, engine):
     base.metadata.drop_all(engine)
 
 
-class mysqlHeader(object):
-    """ Here defines the parameters passed into mysql engine.
-    """
-
-    def __init__(self, acc, pw, db,
-                 host='localhost', port=3306, charset='utf8'):
-        if not isinstance(acc, str):
-            raise TypeError(f"{acc=} is not correct.")
-        if not isinstance(pw, str):
-            raise TypeError("Password is not correct.")
-        if not isinstance(db, str):
-            raise TypeError(f"{db=} is not correct.")
-        self.account = acc
-        self.password = pw
-        self.database = db
-        self.host = host
-        self.port = port
-        self.charset = 'utf8'
-
-    def __str__(self):
-        return f"<{self.account}@{self.host}:{self.port}>"
-
-
 def create_table(table, engine):
     """
     : param table: It is form template defined in form module.
@@ -310,7 +343,7 @@ class Json2Sql(mysqlBase):
         # combine into sql and returns.
         col = ','.join(col_section)
         val = ','.join(value_section)
-        sql = f"INSERT IGNORE into {table_name} ({col}) values ({val})"
+        sql = f"REPLACE into {table_name} ({col}) values ({val})"
         return(sql)
 
     def to_sql_update(self, json_data: json, keys: list, table_name=None):

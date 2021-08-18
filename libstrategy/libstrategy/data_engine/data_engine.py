@@ -1,11 +1,8 @@
-from abc import ABC
 from typing import Tuple
-import numpy as np
 import pandas as pd
 from libmysql_utils.mysql8 import mysqlHeader, mysqlQuery
 from libbasemodel.form import formStockManager
-from pandas import DataFrame
-from sqlalchemy.sql.expression import table
+from pandas import DataFrame, Series
 from .event import XrdrEvent
 
 """
@@ -19,6 +16,11 @@ class DataBase(mysqlQuery):
     用于查询数据的基类
     """
     def __init__(self, header: mysqlHeader, from_date: str, end_date: str) -> None:
+        """
+        input date format
+        from_date: 2021-08-01
+        end_date: 2021-08-31
+        """
         super().__init__(header)
         self.pool = []
         self.data = DataFrame()
@@ -31,6 +33,9 @@ class DataBase(mysqlQuery):
         self.factor = {}
 
     def Config(self, **args):
+        """
+        这个方法将来要被重构以适应具体的类。
+        """
         raise NotImplementedError
 
     def _add_asset(self, stock_code: str):
@@ -45,7 +50,7 @@ class DataBase(mysqlQuery):
     @property
     def asset_list(self) -> list:
         """
-        提供所有的股票代码供查询
+        从数据库获取所有的股票代码，供查询股票代码的真实性
         """
         query_stock_code = self.session.query(formStockManager.stock_code).filter_by(flag='t').all()
         df = pd.DataFrame.from_dict(query_stock_code)
@@ -61,6 +66,40 @@ class DataBase(mysqlQuery):
         return stock_code in self._stock_list
 
 
+class XrdrDataEngine(DataBase):
+    """
+    专用于相关性计算的数据引擎，仅提供复权数据。
+    """
+    def Config(self, **args):
+        """
+        param: {'asset': [stock_1, stock_2, ...]}
+        """
+        asset_list = args.get('asset', [])
+        for asset in asset_list:
+            self._add_asset(asset)
+        self._update()
+
+    def get_data(self, stock_code: str, start='', end='') -> Series:
+        """
+        每个stock返回3列数据‘收盘价’，‘前收盘价’，‘复权价(未复权,待复权计算)’
+        """
+        query_column = 'trade_date,close_price,adjust_factor'
+        def_column = ['trade_date', f"{stock_code}", "adjust_factor"]
+        if start or end:
+            df = self.condition_select(stock_code, query_column, f"trade_date BETWEEN '{start}' AND '{end}'")
+        else:
+            df = self.select_values(stock_code, query_column)
+        if not df.empty:
+            df.columns = def_column
+            df['trade_date'] = pd.to_datetime(df['trade_date'])
+            df.set_index('trade_date', inplace=True)
+            df[stock_code] = df[stock_code] * df['adjust_factor']
+        else:
+            df = DataFrame()
+        return df[stock_code]
+
+
+
 class StockData(DataBase):
     """
     Active data engine
@@ -74,6 +113,7 @@ class StockData(DataBase):
     def __str__(self) -> str:
         return f"From {self.from_date} to {self.end_date}"
 
+    """用于初始化"""
     def Config(self, **args):
         """
         param: {'asset': [stock_1, stock_2, ...]}
@@ -83,34 +123,44 @@ class StockData(DataBase):
             self._add_asset(asset)
         self._update()
 
-    def _get_data(self, stock_code: str, start='', end='') -> DataFrame:
-        query_column = 'trade_date,close_price,prev_close_price'
-        def_column = ['trade_date', f"{stock_code}", f"{stock_code}_prev"]
+    def get_data(self, stock_code: str, start='', end='') -> DataFrame:
+        """
+        每个stock返回3列数据‘收盘价’，‘前收盘价’，‘复权价(未复权,待复权计算)’
+        """
+        query_column = 'trade_date,close_price,adjust_factor'
+        def_column = ['trade_date', f"{stock_code}", f"{stock_code}_factor"]
         if start or end:
             df = self.condition_select(stock_code, query_column, f"trade_date BETWEEN '{start}' AND '{end}'")
         else:
             df = self.select_values(stock_code, query_column)
         if not df.empty:
             df.columns = def_column
-            df[f"{stock_code}_xrdr"] = df[stock_code]
+            df[f"{stock_code}_xrdr"] = df[stock_code] * df[f"{stock_code}_factor"]
             df['trade_date'] = pd.to_datetime(df['trade_date'])
             df.set_index('trade_date', inplace=True)
+            result = df[[stock_code, f"{stock_code}_xrdr"]]
+            return result
         else:
             df = DataFrame()
-        return df
+            return df
 
     def _update(self):
         for stock in self.pool:
             if stock not in self.data.index:
-                df = self._get_data(stock_code=stock, start=self.from_date, end=self.end_date)
+                df = self.get_data(stock_code=stock, start=self.from_date, end=self.end_date)
                 self.data = pd.concat([self.data, df], axis=1)
             self.factor[stock] = 1.0
         self.data.dropna(axis=0, how='any', inplace=True)
 
+
+    """用于逐日回测"""
     def __iter__(self):
         return self.data.iterrows()
 
     def get(self, query_date: pd.Timestamp) -> DataFrame:
+        """
+        按日期返回数据行，用于逐日回测
+        """
         if query_date in self.data.index:
             self.prev_date = query_date
             self.prev_dataline = self.dataline
@@ -133,7 +183,6 @@ class EventEngine(DataBase):
     table_name = 'stock_interest'
     # query data
     # event, return (x1, x2, x3)，分红，送股，转股
-
     # API
     def Config(self, **args):
         """
@@ -145,15 +194,21 @@ class EventEngine(DataBase):
         self.load()
 
     def _reset(self):
+        """
+        仅被load调用，将类重置
+        """
         self.data = {}
 
     def load(self):
+        """
+        类重置之后，重新载入数据。
+        """
         self._reset()
         for stock in self.pool:
-            df = self._get_data(stock_code=stock, start=self.from_date, end=self.end_date)
+            df = self.get_data(stock_code=stock, start=self.from_date, end=self.end_date)
             self.data[stock] = df
 
-    def _get_data(self, stock_code: str, start='', end='') -> DataFrame:
+    def get_data(self, stock_code: str, start='', end='') -> DataFrame:
         query_column = 'float_bonus,float_increase,float_dividend,xrdr_date,char_stock_code'
         if start or end:
             df = self.condition_select(self.table_name, query_column, f"char_stock_code='{stock_code}' AND (xrdr_date BETWEEN '{start}' AND '{end}')")

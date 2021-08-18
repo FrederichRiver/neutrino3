@@ -150,6 +150,7 @@ def service_record_company_stock_structure():
 def service_download_news():
     from dev_global.path import SOFT_PATH
     from libcontext.news_downloader import neteaseNewsSpider
+    from libmysql_utils.mysql8 import mysqlHeader
     header = mysqlHeader('stock', 'stock2020', 'corpus')
     event = neteaseNewsSpider(header, SOFT_PATH)
     hfile = SOFT_PATH + 'config/HREF_LIST'
@@ -162,6 +163,7 @@ def service_download_news():
 
 def service_update_keyword():
     from libnlp.engine.news_classify import NewsBase
+    from libmysql_utils.mysql8 import mysqlHeader
     nlp_head = mysqlHeader('stock', 'stock2020', 'natural_language')
     event = NewsBase(nlp_head)
     idx_list = event.news_idx()
@@ -233,16 +235,13 @@ def service_record_stock_interest():
         event.record_interest(stock_code)
 
 
+def service_record_stock():
+    from libbasemodel.stock_model import StockList
+    from libmysql_utils.header import REMOTE_HEADER
+    event = StockList(REMOTE_HEADER)
+    url = 'http://www.cninfo.com.cn/new/data/szse_stock.json'
+    df = event._get_stock_list_data(url)
+    event.insert_stock_manager(df)
+
 if __name__ == "__main__":
-    from libmysql_utils.mysql8 import mysqlHeader
-    remote_head = mysqlHeader(acc="stock", pw="stock2020", db="stock", host="115.159.1.221")
-    from dev_global.env import SOFT_PATH
-    from libcontext.news_downloader import neteaseFinanceSpider
-    header = mysqlHeader('stock', 'stock2020', 'corpus')
-    event = neteaseFinanceSpider(header, SOFT_PATH)
-    hfile = SOFT_PATH + 'config/HREF_LIST'
-    event.load_href_file(hfile)
-    for url in event.href:
-        # url = "https://money.163.com/21/0302/19/G43UHG4S00259DLP.html"
-        art = event.extract_article(url)
-        event.record_article(art)
+    service_record_stock()
