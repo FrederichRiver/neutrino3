@@ -10,6 +10,7 @@ import numpy.random
 from collections import Counter
 import unittest
 from libnlp.dataset.cner import InputSample, InputFeature
+from libnlp.model.model_config import MAX_EMBEDDING_LENS
 
 
 class NerFeature(object):
@@ -116,9 +117,9 @@ def collate_fn(batch: tuple):
     batch should be a list of (sequence, target, length) tuples...
     Returns a padded tensor of sequences sorted from longest to shortest,
     """
-    all_input_ids, all_attention_mask, all_token_type_ids, all_lens, all_labels = map(torch.stack, zip(*batch))
+    all_input_ids, all_attention_mask, all_token_type_ids, all_labels, all_lens = map(torch.stack, zip(*batch))
     # max_len = max(all_lens).item()
-    max_len = 768
+    max_len = MAX_EMBEDDING_LENS
     all_input_ids = all_input_ids[:, :max_len]
     all_attention_mask = all_attention_mask[:, :max_len]
     all_token_type_ids = all_token_type_ids[:, :max_len]

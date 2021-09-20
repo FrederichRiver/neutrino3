@@ -2,6 +2,8 @@
 from transformers import BertModel, BertConfig, BertTokenizer
 from libnlp.model.crf import CRF
 from torch import nn
+import numpy as np
+import torch
 
 
 Pre_Trained_Model_Path = '/home/fred/Documents/dev/bert_model'
@@ -43,3 +45,4 @@ class BertCRFModel(nn.Module):
 
 if __name__ == "__main__":
     pass
+    

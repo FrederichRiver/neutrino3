@@ -6,14 +6,16 @@ from libspider.industry_report import event_record_industry_report, event_save_i
 
 
 def event_record_report():
-    #event_record_industry_report(3)
-    #event_record_macro_report(3)
-    #event_record_strategy_report(3)
-    #event_download_stock_report(3)
-    event_save_industry_report(1)
-    #event_save_macro_report(2)
-    #event_save_strategy_report(2)
-    #event_save_stock_report(2)
+    days = 2
+    event_record_industry_report(days)
+    event_record_macro_report(days)
+    event_record_strategy_report(days)
+    event_download_stock_report(days)
+    delta_time = 2
+    event_save_industry_report(delta_time)
+    event_save_macro_report(delta_time)
+    event_save_strategy_report(delta_time)
+    event_save_stock_report(delta_time)
 
 
 event_record_report()

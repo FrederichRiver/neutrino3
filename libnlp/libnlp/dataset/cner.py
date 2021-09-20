@@ -6,7 +6,12 @@ import os
 import torch
 from libnlp.model.bert_model import CNerTokenizer
 from torch.utils.data import TensorDataset
+from libnlp.model.model_config import MAX_EMBEDDING_LENS
 
+
+ner_label = ["X", 'B-CONT', 'B-EDU', 'B-LOC', 'B-NAME', 'B-ORG', 'B-PRO', 'B-RACE', 'B-TITLE',
+                'I-CONT', 'I-EDU', 'I-LOC', 'I-NAME', 'I-ORG', 'I-PRO', 'I-RACE', 'I-TITLE',
+                'O', 'S-NAME', 'S-ORG', 'S-RACE']
 
 class InputSample(object):
     """A single training/test example for token classification."""
@@ -264,6 +269,7 @@ class DataEngine(object):
     """
     def __init__(self) -> None:
         self.tokenizer = CNerTokenizer.from_pretrained('bert-base-chinese')
+        # self.position_embedding = PositionalEncoding(512, 512)
 
     def convert_sample_to_feature(self, examples: list, label_list: list, max_seq_length=768, cls_token="[CLS]", cls_token_segment_id=1, sep_token="[SEP]", pad_token=0, pad_token_segment_id=0, sequence_a_segment_id=0, mask_padding_with_zero=True):
         """
@@ -337,6 +343,7 @@ class DataEngine(object):
         # The mask has 1 for real tokens and 0 for padding tokens. Only real
         # tokens are attended to.
         input_mask = [1 if mask_padding_with_zero else 0] * len(input_ids)
+        # input_mask = [i + 1 for i in range(len(input_ids))]
         input_len = len(label_ids)
         # Zero-pad up to the sequence length.
         padding_length = max_seq_length - len(input_ids)
@@ -360,5 +367,52 @@ class DataEngine(object):
         all_segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
         all_label_ids = torch.tensor([f.label_ids for f in features], dtype=torch.long)
         all_lens = torch.tensor([f.input_len for f in features], dtype=torch.long)
-        dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_lens, all_label_ids)
+        dataset = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids, all_lens)
         return dataset
+
+
+    def covert_str_to_feature(self, input_text: str):
+        max_seq_length=MAX_EMBEDDING_LENS
+        cls_token="[CLS]"
+        cls_token_segment_id=1
+        sep_token="[SEP]"
+        pad_token=0
+        pad_token_segment_id=0
+        sequence_a_segment_id=0
+        mask_padding_with_zero=True
+        special_tokens_count=2
+
+        tokens = self.tokenizer.tokenize(input_text)
+        label_ids = []
+        # Cut the tokens if tokens is longer than max_seq_length.
+        if len(tokens) > max_seq_length - special_tokens_count:
+            tokens = tokens[: (max_seq_length - special_tokens_count)]
+        tokens += [sep_token]
+        segment_ids = [sequence_a_segment_id] * len(tokens)
+        # Add [CLS] to the head of token list.
+        tokens = [cls_token] + tokens
+        segment_ids = [cls_token_segment_id] + segment_ids
+        # Code for adding [CLS] token ENDs here.
+        input_ids = self.tokenizer.convert_tokens_to_ids(tokens)
+        # The mask has 1 for real tokens and 0 for padding tokens. Only real
+        # tokens are attended to.
+        input_mask = [1 if mask_padding_with_zero else 0] * len(input_ids)
+        input_len = len(input_ids)
+        # Zero-pad up to the sequence length.
+        padding_length = max_seq_length - len(input_ids)
+        # Pad on right.
+        input_ids += [pad_token] * padding_length
+        input_mask += [0 if mask_padding_with_zero else 1] * padding_length
+        segment_ids += [pad_token_segment_id] * padding_length
+        # """
+        # assert len(input_ids) == max_seq_length
+        # assert len(input_mask) == max_seq_length
+        # assert len(segment_ids) == max_seq_length
+        # assert len(label_ids) == max_seq_length
+        # """
+        f = InputFeature(input_ids=input_ids, input_mask=input_mask, input_len=input_len, segment_ids=segment_ids, label_ids=None)
+        all_input_ids = torch.tensor([f.input_ids], dtype=torch.long)
+        all_input_mask = torch.tensor([f.input_mask], dtype=torch.long)
+        all_segment_ids = torch.tensor([f.segment_ids], dtype=torch.long)
+        all_lens = torch.tensor([f.input_len], dtype=torch.long)
+        return all_input_ids, all_input_mask, all_segment_ids, all_lens

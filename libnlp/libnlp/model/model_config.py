@@ -2,17 +2,19 @@
 import argparse
 from transformers import BertConfig
 
-label_list = [
-    "X", 'B-CONT', 'B-EDU', 'B-LOC', 'B-NAME', 'B-ORG', 'B-PRO', 'B-RACE', 'B-TITLE',
-    'I-CONT', 'I-EDU', 'I-LOC', 'I-NAME', 'I-ORG', 'I-PRO', 'I-RACE', 'I-TITLE',
-    'O', 'S-NAME', 'S-ORG', 'S-RACE', ]
+label_list = ["X", 'B-CONT', 'B-EDU', 'B-LOC', 'B-NAME', 'B-ORG', 'B-PRO', 'B-RACE', 'B-TITLE',
+                'I-CONT', 'I-EDU', 'I-LOC', 'I-NAME', 'I-ORG', 'I-PRO', 'I-RACE', 'I-TITLE',
+                'O', 'S-NAME', 'S-ORG', 'S-RACE', "[START]", "[END]"]
 # BERT_BASE_ZHCN_SIZE is the vocab size of bert_chinese_base.
 BERT_ZH_VOCAB_SIZE = 21128
+HIDDEN_SIZE = 768
+MAX_EMBEDDING_LENS = 256
 # num_labels defines the output dimension of BertModel.
 bert_config = BertConfig(
+    hidden_size=HIDDEN_SIZE,
     vocab_size=BERT_ZH_VOCAB_SIZE,
     num_labels=len(label_list),
-    max_position_embeddings=512)
+    max_position_embeddings=MAX_EMBEDDING_LENS)
 
 train_config = {
     # The name of the task to train selected in the list.
@@ -27,13 +29,13 @@ train_config = {
     # "model_name_or_path": '/home/fred/bert_model/output/',
     # "output_dir": '/home/fred/bert_model/output/',
     # "cache_dir": '/home/fred/bert_model/cache/',
-    "batch_size": 20,
+    "batch_size": 50,
     "markup": 'bios',
     "loss_type": 'ce',
     "config_name": "",
     "tokenizer_name": "",
     "train_max_seq_length": 128,
-    "eval_max_seq_length": 512,
+    "eval_max_seq_length": MAX_EMBEDDING_LENS,
     "do_train": True,
     "do_eval": True,
     "do_predict": True,
@@ -49,7 +51,7 @@ train_config = {
     # learning rate management
     "gradient_accumulation_steps": 1,
     "learning_rate": 1e-5,
-    "crf_learning_rate": 5e-5,
+    "crf_learning_rate": 1e-4,
     "weight_decay": 0.01,
     "adam_epsilon": 1e-8,
     "max_grad_norm": 1.0,

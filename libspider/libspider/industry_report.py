@@ -10,6 +10,7 @@ from libspider.spider_model import DownloadSpider
 from libmysql_utils.mysql8 import mysqlHeader, mysqlBase
 from libbasemodel.form import formStockManager
 
+report_path = '/data1/file_data/report'
 
 class IndustryReport(MacroReport):
     def get_url(self, idx: int, start_date: str, end_date: str):
@@ -81,7 +82,7 @@ class IndustryReportDownloader(DownloadSpider, mysqlBase):
         """
         # 构造path
         indu_name = self.industry_list.get(indu_code)
-        print(indu_name)
+        # print(indu_name)
         file_path = os.path.join(self.Path, indu_name)
         title = title.replace('/', '-')
         file_name = f"{title}-{pub_date}.{file_type}"
@@ -106,9 +107,9 @@ def event_record_industry_report(delta: int):
         total = 5
     print(f"Recording industry report, total {total} pages to be down.")
     for i in range(1, total + 1):
-        print(f"Recording the {i} page.")
+        # print(f"Recording the {i} page.")
         url = event.get_url(i, start_date, end_date)
-        with open('/home/friederich/Dev/neutrino2/data/record_url', 'a') as f:
+        with open(os.path.join(report_path, 'industry_report_log'), 'a') as f:
             f.write(url + '\n')
         main_response = event.get(url)
         if main_response.status_code == 200:
@@ -127,24 +128,24 @@ def event_record_industry_report(delta: int):
                     mysql.session.merge(report)
                     mysql.session.commit()
                 except Exception as e:
-                    with open('/home/friederich/Dev/neutrino2/data/fatal_file2', 'a') as f:
+                    with open(os.path.join(report_path, 'fatal_file2'), 'a') as f:
                         f.write(str(rep))
                         f.write('\n')
                     print(e)
         else:
-            with open('/home/friederich/Dev/neutrino2/data/fatal_url', 'a') as f:
+            with open(os.path.join(report_path, 'fatal_url'), 'a') as f:
                 f.write(url + '\n')
 
 
 def event_save_industry_report(delta: int):
     head = mysqlHeader('stock', 'stock2020', 'stock')
-    event = IndustryReportDownloader('/home/friederich/Documents/industry_report/', header=head)
+    event = IndustryReportDownloader(os.path.join(report_path, 'industry_report/'), header=head)
     report_list = event._get_report_list()
     print(f"Total {len(report_list)} industry report to be down.")
     i = 0
     for report_item in report_list:
         i += 1
-        print(f"Downloading the {i} industry report.")
+        # print(f"Downloading the {i} industry report.")
         if i % 100 == 0:
             event.delay(300)
         pub_date = report_item[2].strftime('%Y-%m-%d')

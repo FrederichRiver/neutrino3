@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, date
 from typing import Tuple
 from libmysql_utils.header import LOCAL_HEADER
 from libmysql_utils.mysql8 import mysqlBase, mysqlHeader, mysqlQuery
+from numpy.ma import mean
 import pandas
 from pandas import DataFrame
 from pandas import isnull
@@ -58,22 +59,30 @@ def cointegration_check(df_a: Series, df_b: Series):
 
 
 class Kalman(object):
-    def __init__(self, observe) -> None:
-        self.kf = KalmanFilter(
-            transition_matrices=np.array([[1, 0], [0, 1]]),
-            observation_matrices=observe
-        )
-        self.mean = 0.0
-        self.cov = 0.0
-
-    def init_param(self, data: DataFrame):
+    def __init__(self, df) -> None:
         """
         初始化卡尔曼滤波过程
         """
+        # 构造观测矩阵
+        observe = np.vstack(
+            (np.ones(len(df)), df.loc[:, 'B'].values)
+        ).T
+        Shape = observe.shape
+        observe = observe.reshape(Shape[0], 1, Shape[1])
+        # 构造转移矩阵
+        # 初始化参数，期望和协方差
+        self.kf = KalmanFilter(
+            transition_matrices=np.array([[1, 0], [0, 1]]),
+            observation_matrices=observe
+            # em_vars= ['transition_matrices', 'observation_matrices']
+        )
         np.random.seed(0)
-        self.kf.em(data)
-        self.mean, self.cov = self.kf.filter(data)
-        return self.mean, self.cov
+        self.kf.em(df['A'])
+        m, c = self.kf.filter(df['A'])
+        self.mean = m[-1]
+        self.cov = c[-1] 
+
+
 
     def update(self, y, x) -> np.ndarray:
         """
@@ -82,6 +91,7 @@ class Kalman(object):
         H = np.array([[1, x]])
         y = y
         # 更新均值和协方差
+        
         self.mean, self.cov = self.kf.filter_update(
             filtered_state_mean = self.mean,
             filtered_state_covariance = self.cov,
@@ -102,12 +112,10 @@ def kalman_param_evalue(df: DataFrame):
     observe = observe.reshape(Shape[0], 1, Shape[1])
     kf = KalmanFilter(
         transition_matrices=np.array([[1, 0], [0, 1]]),
-        observation_matrices=observe
+        observation_matrices=np.array(observe)
     )
     np.random.seed(0)
     kf.em(df[:, 'A'])
-    mean, cov = kf.filter(df.loc[:, 'A'])
-    return mean, cov
 
 # 3. 参数调整
 # 4. 创建标的库
@@ -143,7 +151,7 @@ class PairTradeStrategy(StrategyBase):
     to Do: 完善注释
     Strategy class
     """
-    def __init__(self, stock_1: str, stock_2: str, from_date, to_date ) -> None:
+    def __init__(self, stock_1: str, stock_2: str, from_date, to_date, c ) -> None:
         super(PairTradeStrategy, self).__init__(from_date, to_date)
         self._state = 0
         self._high = 0.0
@@ -151,19 +159,18 @@ class PairTradeStrategy(StrategyBase):
         self.beta = 0.0
         self.alpha = 0.0
         self.trade_list = []
+        self.c = c
+        self.std = 0.0
+        self.var = []
 
     def Config(self, alpha: float, beta: float, **args):
         self.alpha = alpha
         self.beta = beta
 
-    def init_param(self, df):
-        observe = np.vstack(
-            (np.ones(len(df)), df.loc[:, 'B'].values)
-        ).T
-        Shape = observe.shape
-        observe = observe.reshape(Shape[0], 1, Shape[1])
-        self.KF = Kalman(observe)
-        self.KF.init_param(df['B'])
+    def init_param(self, df: DataFrame):
+        self.KF = Kalman(df)
+        self.beta = self.KF.kf.initial_state_mean[1]
+        self.alpha = self.KF.kf.initial_state_mean[0]
 
     def update_param(self, y: float, x: float):
         # to Do
@@ -171,10 +178,7 @@ class PairTradeStrategy(StrategyBase):
         self.KF.update(y, x)
         self.alpha = self.KF.mean[0]
         self.beta = self.KF.mean[1]
-        self.std = self.KF.cov
-        self._high = self.beta + self.std
-        self._low = self.beta - self.std
-
+        
     def add_trade(self, trade_msg: list):
         self.trade_list.extend(trade_msg)
 
@@ -184,24 +188,29 @@ class PairTradeStrategy(StrategyBase):
             text += m.__str__()
         return text
 
-    def set_threshold(self, **kwargs):
-        self._high = kwargs.get('high')
-        self._low = kwargs.get('low')
-        self.beta = kwargs.get('beta')
-        self.alpha = kwargs.get('alpha')
-
     def run(self,trade_date, price_1: float, price_2: float):
         if self.isTradeStart(trade_date):
             return 3
+        self.update_param(price_1, price_2)
         d = price_1 - self.beta * price_2 - self.alpha
-        if (d > self._high) and (self._state != 1):
+        self.var.append(d)
+        if len(self.var) > 20:
+            self.var.pop(0)
+        z = zscore(self.var)
+        print(z)
+        if (z > self.c) and (self._state != 1):
             self._state = 1
             return 1
-        elif (d < self._low) and (self._state != 2):
+        elif (z < (-1 * self.c)) and (self._state != 2):
             self._state = 2
             return 2
         else:
             return 0
+
+def zscore(x: list):
+    df = Series(x).fillna(0)
+    z = (df - df.mean()) / np.std(df)
+    return np.array(z)[0]
 
 class BenchMarkStrategy(StrategyBase):
     """

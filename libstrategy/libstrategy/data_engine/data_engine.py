@@ -127,8 +127,8 @@ class StockData(DataBase):
         """
         每个stock返回3列数据‘收盘价’，‘前收盘价’，‘复权价(未复权,待复权计算)’
         """
-        query_column = 'trade_date,close_price,adjust_factor'
-        def_column = ['trade_date', f"{stock_code}", f"{stock_code}_factor"]
+        query_column = 'trade_date,close_price,prev_close_price,adjust_factor'
+        def_column = ['trade_date', f"{stock_code}", f"{stock_code}_prev", f"{stock_code}_factor"]
         if start or end:
             df = self.condition_select(stock_code, query_column, f"trade_date BETWEEN '{start}' AND '{end}'")
         else:
@@ -138,7 +138,7 @@ class StockData(DataBase):
             df[f"{stock_code}_xrdr"] = df[stock_code] * df[f"{stock_code}_factor"]
             df['trade_date'] = pd.to_datetime(df['trade_date'])
             df.set_index('trade_date', inplace=True)
-            result = df[[stock_code, f"{stock_code}_xrdr"]]
+            result = df[[stock_code, f"{stock_code}_xrdr", f"{stock_code}_prev"]]
             return result
         else:
             df = DataFrame()

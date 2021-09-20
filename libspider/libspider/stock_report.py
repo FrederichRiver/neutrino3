@@ -10,6 +10,8 @@ from libspider.spider_model import DownloadSpider
 import os
 
 
+report_path = '/data1/file_data/report'
+
 class StockResearchReport(EMSpider):
     # Stock research report url
     # url = "http://reportapi.eastmoney.com/report/list?cb=datatable1588407&industryCode=*&pageSize=50&industry=*&rating=&ratingChange=&beginTime=2019-04-03&endTime=2021-04-03&pageNo=1&fields=&qType=0&orgCode=&code=*&rcode=&p=1&pageNum=1&_=1617464725114"
@@ -18,7 +20,7 @@ class StockResearchReport(EMSpider):
         return url
 
     def read_from_file(self) -> list:
-        with open('/home/friederich/Dev/neutrino2/data/fatal_file3', 'r') as f:
+        with open(os.path.join(report_path, 'fatal_file3'), 'r') as f:
             result = f.readlines()
         return result
 
@@ -143,9 +145,10 @@ def event_download_stock_report(delta: int):
         total = 5
     print(f"Recording stock research report, total {total} pages to be down.")
     for i in range(1, total + 1):
-        print(f"Recording the {i} page.")
+        if i % 30 == 0:
+            print(f"Recording the {i} page.")
         url = event.get_url(i, start_date, end_date)
-        with open('/home/friederich/Dev/neutrino2/data/record_url', 'a') as f:
+        with open(os.path.join(report_path, 'record_url'), 'a') as f:
             f.write(url + '\n')
         main_response = event.get(url)
         if main_response.status_code == 200:
@@ -168,12 +171,12 @@ def event_download_stock_report(delta: int):
                     mysql.session.merge(report)
                     mysql.session.commit()
                 except Exception as e:
-                    with open('/home/friederich/Dev/neutrino2/data/fatal_stock_report', 'a') as f:
+                    with open(os.path.join(report_path, 'fatal_stock_report'), 'a') as f:
                         f.write(str(rep))
                         f.write('\n')
                     print(e)
         else:
-            with open('/home/friederich/Dev/neutrino2/data/fatal_url', 'a') as f:
+            with open(os.path.join(report_path, 'fatal_url'), 'a') as f:
                 f.write(url + '\n')
 
 
@@ -202,22 +205,21 @@ def event_from_file():
             mysql.session.commit()
         except Exception as e:
             print(e)
-            with open('/home/friederich/Dev/neutrino2/data/fatal_file4', 'a') as f:
+            with open(os.path.join(report_path, 'fatal_file4'), 'a') as f:
                 f.write(str(json_data))
                 f.write('\n')
 
 
 def event_save_stock_report(delta: int):
     head = mysqlHeader('stock', 'stock2020', 'stock')
-    event = StockResearchReportDownloader('/home/friederich/Documents/stock_report/', header=head)
+    event = StockResearchReportDownloader(os.path.join(report_path, 'stock_report'), header=head)
     report_list = event._get_report_list()
     print(f"Total {len(report_list)} stock reports to be down.")
     i = 0
     for report_item in report_list:
         i += 1
-        print(f"Downloading the {i} stock research report.")
-        if i % 100 == 0:
-            print(i)
+        if i % 100 == 0:    
+            print(f"Downloading the {i} stock research report.")
             event.delay(300)
         pub_date = report_item[2].strftime('%Y-%m-%d')
         path, filename = event._construct_path(report_item[1], report_item[0], pub_date, report_item[3], report_item[5])

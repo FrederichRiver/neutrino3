@@ -7,6 +7,7 @@ import time
 import psutil
 from lxml import etree
 
+report_path = '/data1/file_data/report'
 
 class SpiderBase(object):
     """
@@ -14,7 +15,7 @@ class SpiderBase(object):
     """
     def __init__(self) -> None:
         self._http_header = {}
-        fatal_file = "/home/friederich/Dev/neutrino2/data/fatal_file"
+        fatal_file = os.path.join(report_path, 'fatal_file')
         if os.path.exists(fatal_file):
             self.FATAL = open(fatal_file, 'a')
         else:

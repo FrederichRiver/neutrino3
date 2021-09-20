@@ -116,66 +116,52 @@ class unittest_capital(unittest.TestCase):
     #@unittest.skip("Strategy")
     def test_pair_trade(self):
         hist = '2018-01-01'
-        pre_run = '2018-06-01'
+        hist_end = '2019-01-03'
         start = '2019-01-04'
         end = '2021-03-01'
         #end = '2019-02-01'
         pool = [self.A, self.B]
-        histData = StockData(self.head, hist, pre_run)
+        histData = StockData(self.head, hist, hist_end)
         histData.Config(**{'asset': pool})
         df = histData.data[[f"{self.A}_xrdr", f"{self.B}_xrdr"]]
         df.columns = ['A', 'B']
-        strategy = PairTradeStrategy(self.A, self.B, start, end)
+        strategy = PairTradeStrategy(self.A, self.B, start, end, 0.5)
         strategy.init_param(df)
-        print(strategy.KF.mean)
-        print(strategy.KF.cov)
-        preData = StockData(self.head, pre_run, start)
-        preData.Config(**{'asset': pool})
-        calendar1 = Kalendar(pre_run, start)
-        for trade_date in calendar1:
-            data = preData.get(trade_date)
-            strategy.update_param(data[f"{self.A}_xrdr"], data[f"{self.B}_xrdr"])
+        
         Data = StockData(self.head, start, end)
         Data.Config(**{'asset': [self.A, self.B]})
         Xrdr = EventEngine(self.head, start, end)
         Xrdr.Config(**{'asset': pool})
-        #_, beta, mean, std = cointegration_check(Data.data[self.A], Data.data[self.B])
-        
-        #print(beta, mean, std)
-        #print(beta, mean, std)
         
         strategy_benchamark = BenchMarkStrategy(self.A, start, end)
         Mark = Benchmark('Mark', strategy_benchamark, 100000.0, self.A)
         Mark2 = Benchmark('Mark2', strategy_benchamark, 100000.0, self.B)
-        Person = PairTrading('John',strategy, 100000.0, self.A, self.B, 0)
+        Person = PairTrading('John',strategy, 100000.0, self.A, self.B, 1.5)
         # strategy.set_threshold(**{"high":mean + std, "low": mean - std, "beta": beta, "alpha": mean})
+        
         calendar = Kalendar(start, end)
         report1 = Report('Pair Trading')
         report2 = Report('SZ002460')
         report3 = Report('SZ002497')
         for trade_date in calendar:
-            print(trade_date)
             event_list = Xrdr.get(trade_date)
             for event in event_list:
                 Data.update_factor(event)
                 Person.xrdr(trade_date, event)
             data = Data.get(trade_date)
             if not data.empty:
-                print(data)
+                # print(data)
                 signal = strategy.run(trade_date, float(data[f"{self.A}_xrdr"]), float(data[f"{self.B}_xrdr"]))
                 signal2 = strategy_benchamark.run(trade_date)
+                print(f"|{trade_date}|{float(data['SZ002460_xrdr'])}|{float(data['SZ002497_xrdr'])}|{strategy.alpha}|{strategy.beta}")
                 pair_trade = Person.trade(signal, trade_date, data)
                 bench_trade = Mark.trade(signal2, trade_date, data)
                 bench_trade2 = Mark2.trade(signal2, trade_date, data)
                 strategy_benchamark.built(True)
+                
                 for order in pair_trade:
                     print(order)
                 #print("SZ002460")
-                for order in bench_trade:
-                    print(order)
-                #print("SZ002497")
-                for order in bench_trade2:
-                    print(order)
                 report1.add_trade(pair_trade)
                 report2.add_trade(bench_trade)
                 report3.add_trade(bench_trade2)

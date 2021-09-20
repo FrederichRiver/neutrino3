@@ -7,6 +7,7 @@ from lxml import etree
 from libspider.spider_model import DownloadSpider
 import os
 
+report_path = '/data1/file_data/report'
 
 class MacroReport(EMSpider):
     # Macro research report url
@@ -16,7 +17,7 @@ class MacroReport(EMSpider):
         return url
 
     def read_from_file(self) -> list:
-        with open('/home/friederich/Dev/neutrino2/data/fatal_file3', 'r') as f:
+        with open(os.path.join(report_path, 'fatal_file3'), 'r') as f:
             result = f.readlines()
         return result
 
@@ -113,9 +114,9 @@ def event_record_macro_report(delta: int):
         total = 5
     print(f"Recording macro research report, total {total} pages to be down.")
     for i in range(1, total + 1):
-        print(f"Recording the {i} page.")
+        # print(f"Recording the {i} page.")
         url = event.get_url(i, start_date, end_date)
-        with open('/home/friederich/Dev/neutrino2/data/record_url', 'a') as f:
+        with open(os.path.join(report_path, 'record_url'), 'a') as f:
             f.write(url + '\n')
         main_response = event.get(url)
         if main_response.status_code == 200:
@@ -134,12 +135,12 @@ def event_record_macro_report(delta: int):
                     mysql.session.merge(report)
                     mysql.session.commit()
                 except Exception as e:
-                    with open('/home/friederich/Dev/neutrino2/data/fatal_file2', 'a') as f:
+                    with open(os.path.join(report_path, 'fatal_file2'), 'a') as f:
                         f.write(str(rep))
                         f.write('\n')
                     print(e)
         else:
-            with open('/home/friederich/Dev/neutrino2/data/fatal_url', 'a') as f:
+            with open(report_path, 'fatal_url') as f:
                 f.write(url + '\n')
 
 
@@ -168,21 +169,22 @@ def event_from_file():
             mysql.session.commit()
         except Exception as e:
             print(e)
-            with open('/home/friederich/Dev/neutrino2/data/fatal_file4', 'a') as f:
+            with open(os.path.join(report_path, 'fatal_file4'), 'a') as f:
                 f.write(str(json_data))
                 f.write('\n')
 
 
 def event_save_macro_report(delta: int):
     head = mysqlHeader('stock', 'stock2020', 'stock')
-    event = MacroReportDownloader('/home/friederich/Documents/macro_report', header=head)
+    event = MacroReportDownloader(os.path.join(report_path, 'macro_report'), header=head)
     report_list = event._get_report_list()
     length = event.len_of_report(report_list)
     print(f"Total {length} macro reports to be down.")
     i = 0
     for report_item in report_list:
         i += 1
-        print(f"Downloading the {i} macro report.")
+        if (i % 30) == 0:
+            print(f"Downloading the {i} macro report.")
         pub_date = report_item[2].strftime('%Y-%m-%d')
         path, filename = event._construct_path(report_item[1], report_item[0], pub_date, report_item[4])
         event.save_bin(report_item[3], path, filename)
