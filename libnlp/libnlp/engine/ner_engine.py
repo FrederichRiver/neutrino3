@@ -1,4 +1,5 @@
 #!/usr/bin/python38
+from datetime import date
 import os
 import torch
 import numpy as np
@@ -6,8 +7,8 @@ from torch.cuda import device
 import torch.nn
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
-from transformers import get_linear_schedule_with_warmup
-from ..model.model_config import bert_config, label_list, MAX_EMBEDDING_LENS
+from transformers import get_linear_schedule_with_warmup, get_constant_schedule
+from ..model.model_config import bert_config, MAX_EMBEDDING_LENS
 from ..engine.model_tool import (set_seed, SeqEntityScore, collate_fn, get_entities)
 from ..model.bert_model import BertCRFModel
 
@@ -30,25 +31,32 @@ class NEREngine(object):
         if flag == 'train':
             self.dataloader = DataLoader(dataset=data, batch_size=self.args["batch_size"], shuffle=True, collate_fn=collate_fn)
         elif flag == 'test':
+            self.testloader = DataLoader(dataset=data, batch_size=self.args["batch_size"], shuffle=True, collate_fn=collate_fn)
+        elif flag == 'valid':
             self.dataloader = DataLoader(dataset=data, batch_size=self.args["batch_size"], shuffle=True, collate_fn=collate_fn)
         else:
             raise dataloaderException('Not proper flag definition.')
 
-    def _save_model(self):
+    def _save_model(self, epoch: int, loss: float):
         model_file = os.path.join(self.data_path, "BertCRFModel.pkl")
-        torch.save({'state_dict': self.ner_model.state_dict()}, model_file)
+        torch.save(
+            {   
+                'state_dict': self.ner_model.state_dict(),
+                'epoch': epoch,
+                'optimizer_state_dict': self.optimizer.state_dict(),
+                'loss': loss,
+            }, model_file)
 
     def _load_model(self):
         check_pt = torch.load(os.path.join(self.data_path, "BertCRFModel.pkl"))
         self.ner_model.load_state_dict(check_pt["state_dict"])
+        # self.optimizer.load_state_dict(check_pt["optimizer_state_dict"])
 
     def _scheduler_config(self, args: dict):
         # warmup_steps < train_step
         args['warmup_steps'] = int(args["train_step"] * args['warmup_proportion'])
 
-        self.scheduler = get_linear_schedule_with_warmup(
-            self.optimizer, num_warmup_steps=args['warmup_steps'],
-            num_training_steps=args["train_step"])
+        self.scheduler = get_constant_schedule(self.optimizer)
         if os.path.isfile(os.path.join(args['model_path'], "scheduler.pt")):
             # Load in optimizer and scheduler states
             self.scheduler.load_state_dict(torch.load(os.path.join(args['model_path'], "scheduler.pt")))
@@ -61,10 +69,10 @@ class NEREngine(object):
         crf_param_optimizer = list(self.ner_model.crf.named_parameters())
         linear_param_optimizer = list(self.ner_model.classifier.named_parameters())
         optimizer_grouped_parameters = [
-            {'params': [p for n, p in bert_param_optimizer if not any(nd in n for nd in no_decay)],
-                'weight_decay': args['weight_decay'], 'lr': args['learning_rate']},
-            {'params': [p for n, p in bert_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0,
-                'lr': args['learning_rate']},
+            #{'params': [p for n, p in bert_param_optimizer if not any(nd in n for nd in no_decay)],
+            #    'weight_decay': args['weight_decay'], 'lr': args['learning_rate']},
+            #{'params': [p for n, p in bert_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0,
+            #    'lr': args['learning_rate']},
             {'params': [p for n, p in crf_param_optimizer if not any(nd in n for nd in no_decay)],
                 'weight_decay': args['weight_decay'], 'lr': args['crf_learning_rate']},
             {'params': [p for n, p in crf_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0,
@@ -74,10 +82,10 @@ class NEREngine(object):
             {'params': [p for n, p in linear_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0,
                 'lr': args['crf_learning_rate']}
         ]
-        optimizer = AdamW(optimizer_grouped_parameters, lr=args['learning_rate'], eps=args['adam_epsilon'])
-        if os.path.isfile(os.path.join(args['model_name_or_path'], "optimizer.pt")):
+        optimizer = AdamW(optimizer_grouped_parameters, lr=args['crf_learning_rate'], eps=args['adam_epsilon'])
+        if os.path.isfile(os.path.join(args['model_path'], "optimizer.pt")):
             # Load in optimizer states
-            optimizer.load_state_dict(torch.load(os.path.join(args['model_name_or_path'], "optimizer.pt")))
+            optimizer.load_state_dict(torch.load(os.path.join(args['model_path'], "optimizer.pt")))
         self.optimizer = optimizer
         return optimizer
 
@@ -107,9 +115,8 @@ class NEREngine(object):
             self.optimizer.step()
             with open('/home/fred/Documents/dev/bert_model/train_model/loss_monitor', 'a') as f:
                 f.write(f"{loss.item()}\n")
-            if (step + 1) % 30 == 0:
-                self._save_model()
             self.scheduler.step()  # Update learning rate schedule
+        return tr_loss / len(self.dataloader)
 
     def test(self, args: dict):
         device = torch.device('cuda:0')
@@ -134,17 +141,23 @@ class NEREngine(object):
             self.optimizer.zero_grad()
             test_loss += loss.item()
             # if (step + 1) % args['gradient_accumulation_steps'] == 0:
-        return test_loss
+        return test_loss / len(self.testloader)
 
-    def validation(self, args: dict, train_loss, test_loss):
+    def validation(self, args: dict):
+        import datetime
         best_loss = np.inf
-        for _ in range(int(args['num_train_epochs'])):
+        train_loss = 0.0
+        for i in range(int(args['num_train_epochs'])):
+            t = datetime.datetime.now()
+            time_str = t.strftime('%Y-%m-%d %H:%M:%S')
+            print(f"{time_str}: The {i + 1} step.")
             train_loss = self.train(args)
             test_loss = self.test(args)
             print(f"Train loss: {train_loss}, Valid loss: {test_loss}.")
             if test_loss < train_loss:
-                self._save_model()
+                self._save_model(i, train_loss)
                 best_loss = test_loss
+        self._save_model(0, train_loss)
 
 
     def evalidation(self, args: dict, labels: list):
@@ -196,8 +209,8 @@ class NERServer(object):
         check_pt = torch.load(os.path.join(self.data_path, "BertCRFModel.pkl"))
         self.ner_model.load_state_dict(check_pt["state_dict"])
 
-    def load_label(self):
-        pass
+    def load_label(self, label: list):
+        self.label = label
 
     def _load_data(self, data):
         self.dataloader = DataLoader(dataset=data, batch_size=2, shuffle=False, collate_fn=collate_fn)
@@ -213,7 +226,7 @@ class NERServer(object):
         tags = tags.squeeze(0).numpy().tolist()
         preds = tags[0][1:-1]  # [CLS]XXXX[SEP]
         print(preds)
-        label_entities = get_entities(preds, label_list, 'bio')
+        label_entities = get_entities(preds, self.label, 'bio')
         print(label_entities)
 
 

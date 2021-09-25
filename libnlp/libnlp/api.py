@@ -43,16 +43,16 @@ train_config = {
     # learning rate management
     "gradient_accumulation_steps": 1,
     "learning_rate": 1e-5,
-    "crf_learning_rate": 1e-3,
+    "crf_learning_rate": 5e-3,
     "weight_decay": 0.01,
     "adam_epsilon": 1e-8,
     "max_grad_norm": 1.0,
-    "num_train_epochs": 50,
+    "num_train_epochs": 6,
     "max_steps": -1,
     "warmup_proportion": 0.1,
     "logging_steps": 50,
     "save_steps": 30,
-    "train_step": 10,
+    "train_step": 20,
     "eval_all_checkpoints": True,
     "predict_checkpoints": 0,
     "cuda": False,
@@ -82,12 +82,16 @@ def Train_bert_ner_model():
     # data_dir = '/home/friederich/Documents/bert_model/data/cner/'
     processor = CNERProcessor()
     label_list = processor.get_labels()
-    examples = processor.get_train_sample(Data_Dir)
+    train_examples = processor.get_train_sample(Data_Dir)
+    test_examples = processor.get_test_sample(Data_Dir)
     # print(examples[0])
     data_engine = DataEngine()
-    features = data_engine.convert_sample_to_feature(
-        examples=examples, label_list=label_list, **feature_param)
-    dataset = data_engine.feature_to_dataset(features)
+    train_features = data_engine.convert_sample_to_feature(
+        examples=train_examples, label_list=label_list, **feature_param)
+    train_dataset = data_engine.feature_to_dataset(train_features)
+    test_features = data_engine.convert_sample_to_feature(
+        examples=test_examples, label_list=label_list, **feature_param)
+    test_dataset = data_engine.feature_to_dataset(test_features)
     ner_engine = NEREngine(train_config)
     """
     if torch.cuda.is_available():
@@ -98,8 +102,9 @@ def Train_bert_ner_model():
     ner_engine._load_model()
     ner_engine._optim_config(ner_engine.args)
     ner_engine.scheduler = ner_engine._scheduler_config(ner_engine.args)
-    ner_engine._config_dataloader(dataset)
-    ner_engine.train(ner_engine.args)
+    ner_engine._config_dataloader(train_dataset, 'train')
+    ner_engine._config_dataloader(test_dataset, 'test')
+    ner_engine.validation(train_config)
 
 
 def Evaluate_bert_ner_model():
@@ -118,7 +123,7 @@ def Evaluate_bert_ner_model():
     }
     processor = CNERProcessor()
     label_list = processor.get_labels()
-    examples = processor.get_test_sample(Data_Dir)
+    examples = processor.get_dev_sample(Data_Dir)
     # print(examples[0])
     data_engine = DataEngine()
     features = data_engine.convert_sample_to_feature(
@@ -128,7 +133,7 @@ def Evaluate_bert_ner_model():
     ner_engine._load_model()
     ner_engine._optim_config(ner_engine.args)
     ner_engine.scheduler = ner_engine._scheduler_config(ner_engine.args)
-    ner_engine._config_dataloader(dataset, flag='test')
+    ner_engine._config_dataloader(dataset, flag='valid')
     ner_engine.evalidation(ner_engine.args, label_list)
 
 
@@ -156,12 +161,14 @@ def Run_bert_ner_model():
         examples=examples, label_list=label_list, **feature_param)
     ner_engine = NERServer(train_config)
     ner_engine._load_model()
-    t = '北京天文馆高级工程师 寇文：在阴历十四（20日）的晚上，月亮看起来也是非常圆的，到了十五（21日）的晚上，虽然离月亮最圆已经过了十几个小时，但靠肉眼很难看出区别。'
+    ner_engine.load_label(label_list)
+    # t = '北京天文馆高级工程师 寇文：在阴历十四（20日）的晚上，月亮看起来也是非常圆的，到了十五（21日）的晚上，虽然离月亮最圆已经过了十几个小时，但靠肉眼很难看出区别。'
+    t = '北京天文馆高级工程师喜欢吃月饼，他在吉利汽车公司工作'
     data = data_engine.covert_str_to_feature(t)
     ner_engine.run(data)
 
 
 if __name__ == "__main__":
-    # Evaluate_bert_ner_model()
+    #Evaluate_bert_ner_model()
     Train_bert_ner_model()
-    # Run_bert_ner_model()
+    #Run_bert_ner_model()
