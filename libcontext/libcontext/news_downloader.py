@@ -6,7 +6,7 @@ import lxml
 from libcontext.model import news, formArticle
 from libmysql_utils.mysql8 import mysqlHeader, mysqlBase
 from sqlalchemy.ext.declarative import declarative_base
-from libutils.log import Log
+from libutils.log import Log, method
 
 
 __version__ = '1.2.4'
@@ -193,7 +193,8 @@ class neteaseFinanceSpider(newsSpiderBase):
             r'\"docurl\":\"(http\w?://www.163.com/dy/article/\w+\.html)\"',
             resp.text)
         self.href += result
-
+    
+    @method
     @Log
     def extract_article(self, url):
         text = requests.get(url)
@@ -201,7 +202,8 @@ class neteaseFinanceSpider(newsSpiderBase):
         art = news(html)
         art.url = url
         return art
-
+    
+    @method
     @Log
     def record_article(self, art: news):
         insert_data = {
@@ -266,7 +268,7 @@ class SinaNewsSpider(newsSpiderBase):
             elif re.match(r'(http|https)://finance.sina.com.cn/[a-zA-Z0-9_/]+/\d{8}/[0-9a-zA-Z]+.shtml', url):
                 result.append(url)
             else:
-                with open('/home/friederich/Documents/spider/failed', 'a') as f:
+                with open('/data1/file_data/corpus/failed_news', 'a') as f:
                     f.write(f"{url}\n")
         return result
 

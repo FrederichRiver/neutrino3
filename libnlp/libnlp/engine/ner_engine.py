@@ -69,10 +69,10 @@ class NEREngine(object):
         crf_param_optimizer = list(self.ner_model.crf.named_parameters())
         linear_param_optimizer = list(self.ner_model.classifier.named_parameters())
         optimizer_grouped_parameters = [
-            #{'params': [p for n, p in bert_param_optimizer if not any(nd in n for nd in no_decay)],
-            #    'weight_decay': args['weight_decay'], 'lr': args['learning_rate']},
-            #{'params': [p for n, p in bert_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0,
-            #    'lr': args['learning_rate']},
+            {'params': [p for n, p in bert_param_optimizer if not any(nd in n for nd in no_decay)],
+                'weight_decay': args['weight_decay'], 'lr': args['learning_rate']},
+            {'params': [p for n, p in bert_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0,
+                'lr': args['learning_rate']},
             {'params': [p for n, p in crf_param_optimizer if not any(nd in n for nd in no_decay)],
                 'weight_decay': args['weight_decay'], 'lr': args['crf_learning_rate']},
             {'params': [p for n, p in crf_param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0,
@@ -225,10 +225,8 @@ class NERServer(object):
         input_lens = inputs['input_lens'].numpy().tolist()
         tags = tags.squeeze(0).numpy().tolist()
         preds = tags[0][1:-1]  # [CLS]XXXX[SEP]
-        print(preds)
-        label_entities = get_entities(preds, self.label, 'bio')
-        print(label_entities)
-
+        return preds
+        
 
 class dataloaderException(Exception):
     pass

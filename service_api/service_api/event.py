@@ -149,17 +149,41 @@ def service_record_company_stock_structure():
 
 def service_download_news():
     from dev_global.path import SOFT_PATH
-    from libcontext.news_downloader import neteaseNewsSpider
+    from libcontext.news_downloader import neteaseFinanceSpider
     from libmysql_utils.mysql8 import mysqlHeader
     header = mysqlHeader('stock', 'stock2020', 'corpus')
-    event = neteaseNewsSpider(header, SOFT_PATH)
-    hfile = SOFT_PATH + 'config/HREF_LIST'
-    event.load_href_file(hfile)
-    for url in event.href:
-        # url = "https://money.163.com/21/0302/19/G43UHG4S00259DLP.html"
-        art = event.extract_article(url)
+    event = neteaseFinanceSpider(header, SOFT_PATH)
+    event.generate_url_list()
+    # print(len(event.url_list))
+    i = 0
+    for url in event.url_list:
+        i += 1
+        # print(i, url)
+        event.extract_href(url)
+        event.extract_href2(url)
+        # print(len(event.href))
+    for href in event.href:
+        art = event.extract_article(href)
         event.record_article(art)
 
+
+
+def service_download_sina_news():
+    from dev_global.path import SOFT_PATH
+    from libcontext.news_downloader import SinaNewsSpider
+    from libmysql_utils.mysql8 import mysqlHeader
+    header = mysqlHeader('stock', 'stock2020', 'corpus')
+    event = SinaNewsSpider(header, SOFT_PATH)
+    event.start_url()
+    i = 0
+    for url in event.url_list:
+        i += 1
+        print(i, url)
+        event.extract_href(url)
+        # print(len(event.href))
+    for href in event.href:
+        art = event.extract_article(href)
+        event.record_article(art)
 
 def service_update_keyword():
     from libnlp.engine.news_classify import NewsBase
@@ -244,4 +268,4 @@ def service_record_stock():
     event.insert_stock_manager(df)
 
 if __name__ == "__main__":
-    service_record_stock()
+    service_download_sina_news()

@@ -226,6 +226,48 @@ class CNERProcessor(DataProcessor):
         return examples
 
 
+
+class MSRAProcessor(DataProcessor):
+    """Processor for 'CNER' dataset."""
+
+    def get_train_sample(self, data_dir):
+        """data_dir is the data path w/o '/'."""
+        return self._create_example(self._read_text(os.path.join(data_dir, "msra_train_bio")), "train")
+
+    def get_dev_sample(self, data_dir):
+        """data_dir is the data path w/o '/'."""
+        return self._create_example(self._read_text(os.path.join(data_dir, "dev.char.bmes")), "dev")
+
+    def get_test_sample(self, data_dir):
+        """data_dir is the data path w/o '/'."""
+        return self._create_example(self._read_text(os.path.join(data_dir, "msra_test_bio")), "test")
+
+    def get_labels(self):
+        """See base class."""
+        return ["X", 'B-CONT', 'B-EDU', 'B-LOC', 'B-NAME', 'B-ORG', 'B-PRO', 'B-RACE', 'B-TITLE',
+                'I-CONT', 'I-EDU', 'I-LOC', 'I-NAME', 'I-ORG', 'I-PRO', 'I-RACE', 'I-TITLE',
+                'O', 'S-NAME', 'S-ORG', 'S-RACE', "[START]", "[END]"]
+
+    def _create_example(self, lines, set_type):
+        """Creates examples for the training and dev sets."""
+        examples = []
+        for (i, line) in enumerate(lines):
+            guid = f"{set_type}-{i}"
+            text_a = line['words']
+            # BIOS
+            labels = []
+            for x in line['labels']:
+                if 'M-' in x:
+                    labels.append(x.replace('M-', 'I-'))
+                elif 'E-' in x:
+                    labels.append(x.replace('E-', 'I-'))
+                else:
+                    labels.append(x)
+            examples.append(InputSample(guid=guid, text_a=text_a, labels=labels))
+        return examples
+
+
+
 class CluenerProcessor(DataProcessor):
     """Processor for the chinese ner data set."""
 

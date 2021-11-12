@@ -34,8 +34,8 @@ class spider(object):
 class formArticle(article_base):
     __tablename__ = 'news'
     idx = Column(Integer)
-    title = Column(String(50), primary_key=True)
-    url = Column(String(50))
+    title = Column(String(50))
+    url = Column(String(50), primary_key=True)
     release_date = Column(Date)
     source = Column(String(10))
     content = Column(Text)
