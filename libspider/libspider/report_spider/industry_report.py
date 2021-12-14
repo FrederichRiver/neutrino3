@@ -1,4 +1,4 @@
-#!/usr/bin/python38
+#!/usr/bin/python3
 # "http://data.eastmoney.com/report/industry.jshtml"
 
 # from libspider.spider_model import EMSpider
@@ -8,7 +8,7 @@ import json
 import os
 from libspider.spider_model import DownloadSpider
 from libmysql_utils.mysql8 import mysqlHeader, mysqlBase
-from libbasemodel.form import formStockManager
+from libmysql_utils.orm.form import formStockManager
 
 report_path = '/data1/file_data/report'
 
@@ -82,7 +82,6 @@ class IndustryReportDownloader(DownloadSpider, mysqlBase):
         """
         # 构造path
         indu_name = self.industry_list.get(indu_code)
-        # print(indu_name)
         file_path = os.path.join(self.Path, indu_name)
         title = title.replace('/', '-')
         file_name = f"{title}-{pub_date}.{file_type}"
@@ -123,6 +122,9 @@ def event_record_industry_report(delta: int):
                     inst_dict = event._resolve_institution(rep)
                     inst = form_institution(**inst_dict)
                     mysql.session.merge(inst)
+                    indu_dict = event._resolve_industry(rep)
+                    indu = form_industry(**indu_dict)
+                    mysql.session.merge(indu)
                     report_dict = event._resolve_report(rep)
                     report = form_industry_report(**report_dict)
                     mysql.session.merge(report)
@@ -138,6 +140,7 @@ def event_record_industry_report(delta: int):
 
 
 def event_save_industry_report(delta: int):
+    report_path = '/data1/file_data/report'
     head = mysqlHeader('stock', 'stock2020', 'stock')
     event = IndustryReportDownloader(os.path.join(report_path, 'industry_report/'), header=head)
     report_list = event._get_report_list()
@@ -156,3 +159,6 @@ def event_save_industry_report(delta: int):
         event.delay(delta)
         event.session.query(form_industry_report).filter(form_industry_report.pdf_url == report_item[4]).update({"flag": 'D'})
         event.session.commit()
+
+if __name__ == '__main__':
+    event_save_industry_report(2)

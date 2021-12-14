@@ -1,5 +1,5 @@
 #!/usr/bin/python38
-from libbasemodel.form import formStockManager
+from libmysql_utils.orm.form import formStockManager
 from libspider.form_model import form_industry
 from libspider.spider_model import EMSpider
 from libspider.form_model import form_institution, form_researcher, form_stock_report
@@ -132,6 +132,7 @@ def event_download_stock_report(delta: int):
     from libmysql_utils.mysql8 import mysqlBase, mysqlHeader
     from datetime import datetime
     from datetime import timedelta
+    report_path = '/data1/file_data/report'
     end_date = datetime.today().strftime('%Y-%m-%d')
     start_date = (datetime.today() - timedelta(days=delta)).strftime('%Y-%m-%d')
     head = mysqlHeader('stock', 'stock2020', 'stock')

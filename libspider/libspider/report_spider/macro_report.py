@@ -175,6 +175,7 @@ def event_from_file():
 
 
 def event_save_macro_report(delta: int):
+    report_path = '/data1/file_data/report'
     head = mysqlHeader('stock', 'stock2020', 'stock')
     event = MacroReportDownloader(os.path.join(report_path, 'macro_report'), header=head)
     report_list = event._get_report_list()

@@ -29,7 +29,7 @@ class EventFinanceReport(StockBase):
         """
         read csv data and return a dataframe object.
         """
-        from libbasemodel.form import balance_column
+        from libmysql_utils.orm.form import balance_column
         from libutils.utils import data_clean
         # config file is a url file.
         # _, url = read_json('URL_163_MONEY', CONF_FILE)
@@ -73,7 +73,7 @@ class EventFinanceReport(StockBase):
         read csv data and return a dataframe object.
         """
         import re
-        from libbasemodel.form import cashflow_column
+        from libmysql_utils.orm.form import cashflow_column
         from libutils.utils import data_clean
         # config file is a url file.
         # _, url = read_json('URL_163_MONEY', CONF_FILE)
@@ -116,7 +116,7 @@ class EventFinanceReport(StockBase):
         read csv data and return a dataframe object.
         """
         import re
-        from libbasemodel.form import income_column
+        from libmysql_utils.orm.form import income_column
         from libutils.utils import data_clean
         # config file is a url file.
         # _, url = read_json('URL_163_MONEY', CONF_FILE)

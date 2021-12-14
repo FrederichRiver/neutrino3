@@ -1,0 +1,312 @@
+[
+    {
+        "Name": "赣锋锂业",
+        "Code": "SZ000460",
+        "Nation": "China",
+        "Product1": "锂精矿",
+        "Product2": "LiCO3",
+        "Product3": "LiOH",
+        "Product4": "LiF",
+        "Product5":"Li"
+    },
+    {
+        "Name": "天齐锂业",
+        "Code": "",
+        "Nation": "China",
+        "Product1": ""
+    },
+    {
+        "Name": "盐湖股份"
+    },
+    {
+        "Name": "藏格控股"
+    },
+    {
+        "Name": "江特电机"
+    },
+    {
+        "Name": "雅化集团"
+    },
+    {
+        "Name": "融捷股份"
+    },
+    {
+        "Name": "中伟股份"
+    },
+    {
+        "Name": "盛新锂能"
+    },
+    {
+        "Name": "格林美"
+    },
+    {
+        "Name": "盛屯矿业"
+    },
+    {
+        "Name": "川能动力"
+    },
+    {
+        "Name": "富临精工"
+    },
+    {
+        "Name": "亿纬锂能"
+    },
+    {
+        "Name": "欣旺达"
+    },
+    {
+        "Name": "比亚迪"
+    },
+    {
+        "Name": "宁德时代"
+    },
+    {
+        "Name": "中航锂电"
+    },
+    {
+        "Name": "恩捷股份"
+    },
+    {
+        "Name": "星源材质"
+    },
+    {
+        "Name": "一里坪盐湖",
+        "Type":"盐湖",
+        "Reserve":154,
+        "Potency":210,
+        "Mg/Li":92.3
+    },
+    {
+        "Name": "察尔汗盐湖",
+        "Type":"盐湖",
+        "Reserve":630,
+        "Potency":30,
+        "Mg/Li":1825
+    },
+    {
+        "Name": "东台吉乃尔",
+        "Type":"盐湖",
+        "Reserve":48,
+        "Potency":850,
+        "Mg/Li":35.2
+    },
+    {
+        "Name": "西台吉乃尔",
+        "Type":"盐湖",
+        "Reserve":233,
+        "Potency":310,
+        "Mg/Li":65.16
+    },
+    {
+        "Name": "大柴旦盐湖",
+        "Type":"盐湖",
+        "Reserve":29,
+        "Potency":324.2,
+        "Mg/Li":133.8
+    },
+    {
+        "Name": "扎布耶",
+        "Type":"盐湖",
+        "Reserve":973,
+        "Potency":489,
+        "Mg/Li":0.053
+    },
+    {
+        "Name": "阿里龙木错",
+        "Type":"盐湖",
+        "Reserve":191,
+        "Potency":210,
+        "Mg/Li":90
+    },
+    {
+        "Name": "结则茶卡",
+        "Type":"盐湖",
+        "Reserve":201,
+        "Potency":140,
+        "Mg/Li":1.5
+    },
+    {
+        "Name": "Hombre Muerto-Livent",
+        "Type":"盐湖",
+        "Reserve":120,
+        "Potency":747,
+        "Mg/Li":1.34
+    },
+    {
+        "Name": "Hombre Muerto-POSCO",
+        "Type":"盐湖",
+        "Reserve":1350,
+        "Potency":921,
+        "Mg/Li":1.39
+    },
+    {
+        "Name": "Hombre Muerto-Galan",
+        "Type":"盐湖",
+        "Reserve":227,
+        "Potency":946,
+        "Mg/Li":1.66
+    },
+    {
+        "Name": "Sal de Vida",
+        "Type":"盐湖",
+        "Reserve":129,
+        "Potency":770,
+        "Mg/Li":3.0
+    },
+    {
+        "Name": "Cauchari-Olaroz-Orocobre&TTC",
+        "Type":"盐湖",
+        "Reserve":1274,
+        "Potency":602,
+        "Mg/Li":2.49
+    },
+    {
+        "Name": "Cauchari-Olaroz-Ganfeng&LAC",
+        "Type":"盐湖",
+        "Reserve":364,
+        "Potency":607,
+        "Mg/Li":2.37
+    },
+    {
+        "Name": "Mariana-Ganfeng&ILC",
+        "Type":"盐湖",
+        "Reserve":812,
+        "Potency":321,
+        "Mg/Li":13.80
+    },
+    {
+        "Name": "SDLA-西藏珠峰",
+        "Type":"盐湖",
+        "Reserve":205,
+        "Potency":479,
+        "Mg/Li":3.80
+    },
+    {
+        "Name": "Rincon",
+        "Type":"盐湖",
+        "Reserve":836,
+        "Potency":400,
+        "Mg/Li":2.2
+    },
+    {
+        "Name": "Rincon-Argosy",
+        "Type":"盐湖",
+        "Reserve":25,
+        "Potency":325,
+        "Mg/Li":7.7
+    },
+    {
+        "Name": "Atacama",
+        "Type":"盐湖",
+        "Reserve":4841.2,
+        "Potency":1835,
+        "Mg/Li":6.4
+    },
+    {
+        "Name": "Maricunga",
+        "Type":"盐湖",
+        "Reserve":74.2,
+        "Potency":1117,
+        "Mg/Li":6.55
+    },
+    {
+        "Name": "Uyuni",
+        "Type":"盐湖",
+        "Reserve":11219.427,
+        "Potency":424,
+        "Mg/Li":18.6
+    },
+    {
+        "Name": "Greenbushes",
+        "Type":"锂矿",
+        "Reserve":878,
+        "Li2O":2.1
+    },
+    {
+        "Name": "Mt Cattlin",
+        "Type":"锂矿",
+        "Reserve":33,
+        "Li2O":1.2
+    },
+    {
+        "Name": "Mt Marion",
+        "Type":"锂矿",
+        "Reserve":242,
+        "Li2O":1.37
+    },
+    {
+        "Name": "Pilgangoora-Pilbara",
+        "Type":"锂矿",
+        "Reserve":693,
+        "Li2O":1.26
+    },
+    {
+        "Name": "Pilgangoora-Altrua",
+        "Type":"锂矿",
+        "Reserve":120,
+        "Li2O":1.06
+    },
+    {
+        "Name": "Finniss",
+        "Type":"锂矿",
+        "Reserve":28,
+        "Li2O":1.3
+    },
+    {
+        "Name": "Mt Holland",
+        "Type":"锂矿",
+        "Reserve":701,
+        "Li2O":1.5
+    },
+    {
+        "Name": "Bald Hill",
+        "Type":"锂矿",
+        "Reserve":63,
+        "Li2O":0.96
+    },
+    {
+        "Name": "Wodgina",
+        "Type":"锂矿",
+        "Reserve":750,
+        "Li2O":1.17
+    },
+    {
+        "Name": "丰宜县茜坑锂矿",
+        "Type":"锂矿",
+        "Reserve":126.3,
+        "Li2O":0.46
+    },
+    {
+        "Name": "化山瓷石矿",
+        "Type":"锂矿",
+        "Reserve":25.2,
+        "Li2O":null
+    },
+    {
+        "Name": "宜春钽铌矿",
+        "Type":"锂矿",
+        "Reserve":271,
+        "Li2O":null
+    },
+    {
+        "Name": "丰宜县花桥大港瓷土矿",
+        "Type":"锂矿",
+        "Reserve":200,
+        "Li2O":null
+    },
+    {
+        "Name": "天宜锂业"
+    },
+    {
+        "Name": "容汇锂业"
+    },
+    {
+        "Name": "永兴材料"
+    },
+    {
+        "Name": "江西钨业"
+    },
+    {
+        "Name": "飞宇新能源"
+    }
+]

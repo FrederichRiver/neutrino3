@@ -141,6 +141,12 @@ class EMSpider(SpiderBase):
         code = prefix + f'{data.get("stockCode")}'
         return code
 
+    def _resolve_industry(self, data: json) -> dict:
+        indu_code = data.get("industryCode")
+        indu_name = data.get("industryName")
+        indu_data = { "industryCode": indu_code, "industryName": indu_name}
+        return indu_data
+
     def _get_title(self, text: str) -> str:
         text = text.replace('?', '')
         text = text.replace('"', '')

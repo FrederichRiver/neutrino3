@@ -1,4 +1,4 @@
-#!/usr/bin/python38
+#!/usr/bin/python3
 
 # http://reportapi.eastmoney.com/report/jg?cb=datatable3558439&pageSize=50&beginTime=2019-04-23&endTime=2021-04-23&pageNo=1&fields=&qType=2&orgCode=&author=&p=1&pageNum=1&_=1619179741299
 # from libspider.spider_model import EMSpider
@@ -126,6 +126,7 @@ def event_record_strategy_report(delta: int):
 
 
 def event_save_strategy_report(delta: int):
+    report_path = '/data1/file_data/report'
     head = mysqlHeader('stock', 'stock2020', 'stock')
     event = StrategyReportDownloader(os.path.join(report_path, 'strategy_report'), header=head)
     report_list = event._get_report_list()

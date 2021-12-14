@@ -222,7 +222,7 @@ $$
 $$
 \begin{aligned}
 Q(\theta,\theta^{(t)})&=\sum_I P(I|O,\lambda^{(t)})logP(O,I|\lambda)\\
-&=\sum_I P(I|O,\lambda^{(t)})\left[logP(O,I|\lambda)\\
+&=\sum_I P(I|O,\lambda^{(t)})\left[logP(O,I|\lambda)\right]
 \end{aligned}
 $$
 

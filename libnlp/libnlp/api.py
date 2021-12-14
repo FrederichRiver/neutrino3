@@ -43,11 +43,11 @@ train_config = {
     # learning rate management
     "gradient_accumulation_steps": 1,
     "learning_rate": 1e-5,
-    "crf_learning_rate": 2e-4,
+    "crf_learning_rate": 5e-3,
     "weight_decay": 0.01,
     "adam_epsilon": 1e-8,
     "max_grad_norm": 1.0,
-    "num_train_epochs": 3,
+    "num_train_epochs": 12,
     "max_steps": -1,
     "warmup_proportion": 0.1,
     "logging_steps": 50,
@@ -80,8 +80,8 @@ def Train_bert_ner_model():
         "mask_padding_with_zero": True
     }
     # data_dir = '/home/friederich/Documents/bert_model/data/cner/'
-    # processor = CNERProcessor()
-    processor = MSRAProcessor()
+    processor = CNERProcessor()
+    # processor = MSRAProcessor()
     label_list = processor.get_labels()
     train_examples = processor.get_train_sample(Data_Dir)
     test_examples = processor.get_test_sample(Data_Dir)
@@ -100,7 +100,7 @@ def Train_bert_ner_model():
         print(device)
         ner_engine.ner_model.to(device)
     """
-    ner_engine._load_model()
+    # ner_engine._load_model()
     ner_engine._optim_config(ner_engine.args)
     ner_engine.scheduler = ner_engine._scheduler_config(ner_engine.args)
     ner_engine._config_dataloader(train_dataset, 'train')
@@ -163,8 +163,8 @@ def Run_bert_ner_model():
     ner_engine._load_model()
     ner_engine.load_label(label_list)
     t = '北京天文馆高级工程师 寇文：在阴历十四（20日）的晚上，月亮看起来也是非常圆的，到了十五（21日）的晚上，虽然离月亮最圆已经过了十几个小时，但靠肉眼很难看出区别。'
-    t = '1911年，是中国农历辛亥年。这一年发生的辛亥革命推翻了清朝政府，结束了在中国延续几千年的君主专制制度，成为里程碑式的历史事件。今年10月9日，纪念辛亥革命110周年大会隆重举行，习近平总书记在会上发表重要讲话，深刻阐述了辛亥革命110年来的历史启示。'
-    # t = '北京天文馆高级工程师喜欢吃月饼，他在吉利汽车公司工作'
+    # t = '1911年，是中国农历辛亥年。这一年发生的辛亥革命推翻了清朝政府，结束了在中国延续几千年的君主专制制度，成为里程碑式的历史事件。今年10月9日，纪念辛亥革命110周年大会隆重举行，习近平总书记在会上发表重要讲话，深刻阐述了辛亥革命110年来的历史启示。'
+    #t = '北京天文馆高级工程师喜欢吃月饼，他在吉利汽车公司工作'
     data = data_engine.covert_str_to_feature(t)
     preds = ner_engine.run(data)
     # tokens = data_engine.tokenizer.convert_ids_to_tokens(preds)
@@ -218,5 +218,5 @@ def Test():
 if __name__ == "__main__":
     # Evaluate_bert_ner_model()
     # Train_bert_ner_model()
-    # Run_bert_ner_model()
-    Test()
+    Run_bert_ner_model()
+    # Test()

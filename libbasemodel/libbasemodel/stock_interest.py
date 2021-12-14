@@ -30,7 +30,7 @@ class EventInterest(StockBase):
         """
         Initial interest table.
         """
-        from libbasemodel.form import formInterest
+        from libmysql_utils.orm.form import formInterest
         self.create_table_from_table("stock_interest", formInterest.__tablename__)
 
     def resolve_interest_table(self, stock_code: str):

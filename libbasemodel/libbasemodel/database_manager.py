@@ -9,7 +9,7 @@ from libutils.log import neulog, Log, method
 from libmysql_utils.mysql8 import create_table, mysqlBase, mysqlHeader
 from libmysql_utils.header import GLOBAL_HEADER
 from libbasemodel.stock_model import StockBase
-from libbasemodel.form import Base
+from libmysql_utils.orm.form import Base
 from libutils.utils import read_json
 
 

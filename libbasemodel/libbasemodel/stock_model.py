@@ -13,7 +13,7 @@ from dev_global.env import TIME_FMT
 from libmysql_utils.mysql8 import (mysqlBase, mysqlHeader, Json2Sql)
 from pandas import DataFrame
 from requests.models import HTTPError
-from libbasemodel.form import formStockManager
+from libmysql_utils.orm.form import formStockManager
 from libbasemodel.cninfo import cninfoSpider
 from sqlalchemy import exc
 
