@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 from dev_global.env import GITHUB_URL, EMAIL
 
-v = (1, 4, 12)
+v = (1, 4, 13)
 
 setup(
         name='libspider',

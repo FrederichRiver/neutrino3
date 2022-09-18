@@ -124,6 +124,8 @@ class StockResearchReportDownloader(DownloadSpider, mysqlBase):
         stock_name = self.stock_list.get(stock_code, '')
         file_path = os.path.join(self.Path, indu_name, f"{stock_code}-{stock_name}")
         title = title.replace('/', '-')
+        if len(title) > 30:
+            title = title[:30]
         file_name = f"{stock_code}-{stock_name}-{title}-{pub_date}.{file_type}"
         return file_path, file_name
 

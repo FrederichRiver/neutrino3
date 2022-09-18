@@ -43,7 +43,7 @@ train_config = {
     # learning rate management
     "gradient_accumulation_steps": 1,
     "learning_rate": 1e-5,
-    "crf_learning_rate": 5e-3,
+    "crf_learning_rate": 1e-3,
     "weight_decay": 0.01,
     "adam_epsilon": 1e-8,
     "max_grad_norm": 1.0,
@@ -100,7 +100,7 @@ def Train_bert_ner_model():
         print(device)
         ner_engine.ner_model.to(device)
     """
-    # ner_engine._load_model()
+    ner_engine._load_model()
     ner_engine._optim_config(ner_engine.args)
     ner_engine.scheduler = ner_engine._scheduler_config(ner_engine.args)
     ner_engine._config_dataloader(train_dataset, 'train')
@@ -217,6 +217,6 @@ def Test():
 
 if __name__ == "__main__":
     # Evaluate_bert_ner_model()
-    # Train_bert_ner_model()
-    Run_bert_ner_model()
+    Train_bert_ner_model()
+    # Run_bert_ner_model()
     # Test()

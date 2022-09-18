@@ -27,6 +27,8 @@ class IndustryReport(MacroReport):
         prefix = "http://data.eastmoney.com/report/zw_industry.jshtml?infocode="
         id = data.get('id')
         title = self._get_title(data.get("title"))
+        if len(title) > 50:
+            title = title[:50]
         au_list = self._resolve_researcher(data)
         if len(au_list) > 1:
             au1 = au_list[0].get('idx')
