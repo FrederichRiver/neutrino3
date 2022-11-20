@@ -604,6 +604,10 @@ class formCapitalRelativeMatrix(Base):
     relative = Column(Float, comment='')
     update_date = Column(Date, comment='')
 
+class formInvestValueTemplate(Base):
+    __tablename__ = 'invest_value_template'
+    trade_date = Column(Date, comment='')
+
 if __name__ == "__main__":
     x = [f"c{i+1}" for i in range(90)]
     print(x[-1])

@@ -22,6 +22,7 @@ x['rate'] = x['sh'].diff(n) / x['sh'].shift(n)
 # plt.show()
 s = np.array(x['rate'].dropna())
 y = fft(s[1:])
+# 滤波
 y1 = [i if i > 20 else 0 for i in y]
 y2 = [i if i > 50 else 0 for i in y]
 y3 = [i if i > 200 else 0 for i in y]
@@ -32,11 +33,11 @@ print(len(y3))
 z1 = ifft(y1)
 z2 = ifft(y2)
 z3 = ifft(y3)
-#plt.plot(s)
-#plt.plot(z1)
-#plt.plot(z2)
-#plt.plot(z3)
-#plt.show()
+plt.plot(s)
+plt.plot(z1)
+plt.plot(z2)
+plt.plot(z3)
+plt.show()
 if len(y) // 2:
     print(len(y),1)
     half = int((len(y) + 1)/2)

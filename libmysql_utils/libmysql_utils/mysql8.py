@@ -15,6 +15,7 @@ from dev_global.env import TIME_FMT
 from dev_global.path import CONF_FILE
 from pandas import Series
 from pandas.core.frame import DataFrame
+import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -22,7 +23,6 @@ from sqlalchemy.orm import sessionmaker
 __version__ = '4.4.20'
 
 __all__ = ['mysqlBase', 'mysqlHeader', 'GLOBAL_HEADER']
-
 
 
 class mysqlHeader(object):
@@ -103,12 +103,6 @@ class mysqlBase(object):
     def __str__(self):
         return f"mysql engine <{self.account}@{self.host}>"
 
-    def _version(self):
-        """
-        Use for testing. Return mysql version in str format. 
-        """
-        version = self.engine.execute("SELECT VERSION()").fetchone()
-        return version[0]
 
     def insert(self, table: str, value: dict):
         """
